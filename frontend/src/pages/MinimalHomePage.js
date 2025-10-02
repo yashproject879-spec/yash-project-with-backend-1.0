@@ -48,7 +48,7 @@ const MinimalHomePage = () => {
       </header>
 
       {/* NEW LUXURY HERO BANNER SECTION */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Video with Fallback */}
         <div className="absolute inset-0 w-full h-full">
           {/* Fallback Background - Elegant gradient */}
