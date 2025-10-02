@@ -237,15 +237,18 @@ frontend:
 
   - task: "Asset Loading"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/MinimalHomePage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Stallion logo, horse background video, and trouser image assets implemented. Needs testing for proper loading and display."
+      - working: false
+        agent: "testing"
+        comment: "Mixed results: ✅ Stallion logo (/stallion-logo.jpg) loads and displays correctly, ✅ Trouser image (https://i.imgur.com/WHiM5fP.png) loads and displays correctly. ❌ CRITICAL ISSUE: Horse background video (/stallion-horse-video.mp4) fails to load with ERR_ABORTED error despite file existing in public folder (12.5MB file confirmed present). Video element is configured correctly but not playing."
 
   - task: "Responsive Design"
     implemented: true
