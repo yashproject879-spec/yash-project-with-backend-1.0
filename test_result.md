@@ -274,13 +274,12 @@ metadata:
 test_plan:
   current_focus:
     - "Hero Banner Verification"
-    - "Scroll Functionality"
-    - "Navigation Testing"
     - "Asset Loading"
-    - "Responsive Design"
-  stuck_tasks: []
-  test_all: true
-  test_priority: "high_first"
+  stuck_tasks:
+    - "Hero Banner Verification"
+    - "Asset Loading"
+  test_all: false
+  test_priority: "stuck_first"
 
 agent_communication:
   - agent: "testing"
