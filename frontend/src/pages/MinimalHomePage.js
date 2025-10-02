@@ -53,7 +53,7 @@ const MinimalHomePage = () => {
         <video 
           className="absolute inset-0 w-full h-full object-cover"
           autoPlay 
-          muted 
+          muted={true}
           loop 
           playsInline
           preload="auto"
