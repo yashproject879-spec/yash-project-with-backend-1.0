@@ -258,12 +258,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "API Health Check"
-    - "Product Catalog"
-    - "Measurement Submission"
-    - "Virtual Fitting"
-    - "Data Retrieval"
-    - "Error Handling"
+    - "Hero Banner Verification"
+    - "Scroll Functionality"
+    - "Navigation Testing"
+    - "Asset Loading"
+    - "Responsive Design"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
