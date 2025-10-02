@@ -192,15 +192,18 @@ backend:
 frontend:
   - task: "Hero Banner Verification"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/MinimalHomePage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Hero banner with horse video background, deep maroon header (#6F0914), and luxury text content implemented. Needs testing for proper loading and styling."
+      - working: false
+        agent: "testing"
+        comment: "Hero banner mostly working: ✅ Header has correct deep maroon background (rgb(111, 9, 20)), ✅ Logo loads and displays correctly, ✅ Company name visible, ✅ Hero title and tagline display properly, ✅ CTA button styling and hover effects work. ❌ CRITICAL ISSUE: Background video fails to load with ERR_ABORTED error, though video file exists in public folder. Video element is present but not playing. Fixed muted attribute to muted={true} for autoplay compatibility."
 
   - task: "Scroll Functionality"
     implemented: true
