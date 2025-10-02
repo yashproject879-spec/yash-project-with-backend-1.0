@@ -18,7 +18,7 @@ const MinimalHomePage = () => {
   };
 
   return (
-    <div className="overflow-hidden">
+    <div className="w-full">
       {/* NEW LUXURY HEADER */}
       <header className="fixed top-0 w-full z-50" style={{ backgroundColor: '#6F0914' }}>
         <div className="max-w-7xl mx-auto px-8">
