@@ -49,23 +49,44 @@ const MinimalHomePage = () => {
 
       {/* NEW LUXURY HERO BANNER SECTION */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Video */}
-        <video 
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay 
-          muted={true}
-          loop 
-          playsInline
-          preload="auto"
-        >
-          <source src="/stallion-horse-video.mp4" type="video/mp4" />
-        </video>
+        {/* Background Video with Fallback */}
+        <div className="absolute inset-0 w-full h-full">
+          {/* Fallback Background - Elegant gradient */}
+          <div 
+            className="absolute inset-0 w-full h-full"
+            style={{
+              background: `linear-gradient(135deg, #6F0914 0%, #4A1810 50%, #2D3748 100%)`
+            }}
+          />
+          
+          {/* Video Element with Error Handling */}
+          <video 
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay 
+            muted={true}
+            loop 
+            playsInline
+            preload="metadata"
+            onError={(e) => {
+              console.log('Video failed to load, using fallback background');
+              e.target.style.display = 'none';
+            }}
+            onLoadStart={() => {
+              console.log('Video loading started');
+            }}
+            onCanPlay={() => {
+              console.log('Video can play');
+            }}
+          >
+            <source src="/stallion-horse-video.mp4" type="video/mp4" />
+          </video>
+        </div>
         
         {/* Cream Overlay for readability */}
         <div 
           className="absolute inset-0 w-full h-full"
           style={{ 
-            backgroundColor: 'rgba(247, 242, 222, 0.2)'
+            backgroundColor: 'rgba(247, 242, 222, 0.3)'
           }}
         />
         
