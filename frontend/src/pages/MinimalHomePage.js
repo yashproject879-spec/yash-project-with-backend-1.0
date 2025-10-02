@@ -135,7 +135,7 @@ const MinimalHomePage = () => {
       {/* EXISTING CONTENT AS SECOND SECTION */}
       <section 
         id="existing-content" 
-        className="min-h-screen relative pt-16" 
+        className="w-full min-h-screen relative pt-16" 
         style={{ backgroundColor: '#F7F2DE' }}
       >
         <div className="min-h-screen flex items-center justify-center relative">
