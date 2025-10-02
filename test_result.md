@@ -190,17 +190,65 @@ backend:
         comment: "MongoDB integration working correctly. Data is successfully stored and retrieved from measurements and virtual_fittings collections. Database connection stable."
 
 frontend:
-  - task: "Frontend Integration"
+  - task: "Hero Banner Verification"
     implemented: true
     working: "NA"
-    file: "/app/frontend/src/pages/"
+    file: "/app/frontend/src/pages/MinimalHomePage.js"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
+    priority: "high"
+    needs_retesting: true
     status_history:
       - working: "NA"
-        agent: "testing"
-        comment: "Frontend testing not performed as per testing agent limitations. Backend API endpoints are ready for frontend integration."
+        agent: "main"
+        comment: "Hero banner with horse video background, deep maroon header (#6F0914), and luxury text content implemented. Needs testing for proper loading and styling."
+
+  - task: "Scroll Functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MinimalHomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Hero CTA button scroll to existing content section implemented. Needs testing for smooth scroll behavior."
+
+  - task: "Navigation Testing"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MinimalHomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Header consultation button navigation to /virtual-fitting and content CTA navigation to /measurements implemented. Needs testing."
+
+  - task: "Asset Loading"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MinimalHomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Stallion logo, horse background video, and trouser image assets implemented. Needs testing for proper loading and display."
+
+  - task: "Responsive Design"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/MinimalHomePage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Responsive layout with lg: breakpoints implemented. Needs testing on different viewport sizes."
 
 metadata:
   created_by: "testing_agent"
