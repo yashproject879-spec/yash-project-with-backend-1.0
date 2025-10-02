@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Test the Stallion & Co. luxury tailoring backend API to ensure all endpoints are working correctly after the frontend update. Focus on API Health Check, Product Catalog, Measurement Submission, Virtual Fitting, Data Retrieval, and Error Handling."
+user_problem_statement: "Test the Stallion & Co. luxury homepage functionality and verify the implementation according to these requirements: Hero Banner Verification, Scroll Functionality, Navigation Testing, Asset Loading, and Responsive Design."
 
 backend:
   - task: "API Health Check"
