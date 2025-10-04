@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Form, status, BackgroundTasks, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Form, status, BackgroundTasks, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any
