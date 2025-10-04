@@ -137,9 +137,9 @@ const VirtualFitting = () => {
           </p>
         </div>
 
-        <Card className="max-w-2xl mx-auto">
+        <Card className="luxury-card max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-center">Book Your Consultation</CardTitle>
+            <CardTitle className="font-serif text-2xl text-maroon-600 text-center">Book Your Consultation</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
