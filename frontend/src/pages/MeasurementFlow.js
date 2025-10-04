@@ -739,14 +739,16 @@ const MeasurementFlow = () => {
           <h1 className="font-serif text-4xl font-bold text-maroon-600 mb-3" data-testid="step-title">
             {currentStep === 1 && 'Personal Information'}
             {currentStep === 2 && 'Measurements'}
-            {currentStep === 3 && 'Order Preferences'}
-            {currentStep === 4 && 'Payment & Confirmation'}
+            {currentStep === 3 && 'Photo Upload'}
+            {currentStep === 4 && 'Order Preferences'}
+            {currentStep === 5 && 'Payment & Confirmation'}
           </h1>
           <p className="text-xl text-text-light">
             {currentStep === 1 && 'Tell us about yourself'}
             {currentStep === 2 && 'Provide your precise measurements'}
-            {currentStep === 3 && 'Customize your order'}
-            {currentStep === 4 && 'Complete your order'}
+            {currentStep === 3 && 'Upload your photos for better fitting'}
+            {currentStep === 4 && 'Customize your order'}
+            {currentStep === 5 && 'Complete your order'}
           </p>
         </div>
 
