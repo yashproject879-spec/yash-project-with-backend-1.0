@@ -73,19 +73,38 @@ class SheetsService:
             sheet = self.client.open_by_key(self.sheet_id)
             worksheet = sheet.get_worksheet(0)  # First worksheet
             
-            # Prepare row data matching the expected sheet structure
+            # Calculate total amount (assuming base price of 450 per item)
+            base_price = 450
+            quantity = order_data.get('quantity', 1)
+            total_amount = base_price * quantity
+            
+            # Prepare row data matching the comprehensive sheet structure
             row_data = [
+                # Order Information
                 datetime.now().strftime('%Y-%m-%d %H:%M:%S'),  # Timestamp
                 order_data['id'],  # Order ID
                 payment_id,  # Payment ID
+                'Paid',  # Payment Status
+                order_data.get('order_status', 'Paid'),  # Order Status
+                
+                # Customer Information
                 f"{order_data['customer_info']['first_name']} {order_data['customer_info']['last_name']}",  # Customer Name
+                order_data['customer_info']['first_name'],  # First Name
+                order_data['customer_info']['last_name'],  # Last Name
                 order_data['customer_info']['email'],  # Email
                 order_data['customer_info'].get('phone', ''),  # Phone
                 order_data['customer_info'].get('age', ''),  # Age
+                order_data['customer_info'].get('body_type', ''),  # Body Type
+                order_data['customer_info'].get('special_considerations', ''),  # Special Considerations
+                
+                # Product Information
                 order_data.get('product_selected', 'Premium Tailored Trousers'),  # Product
-                order_data.get('quantity', 1),  # Quantity
-                order_data.get('fabric_choice', ''),  # Fabric
+                quantity,  # Quantity
+                order_data.get('fabric_choice', ''),  # Fabric Choice
                 order_data.get('style_preferences', ''),  # Style Preferences
+                order_data.get('notes', ''),  # Additional Notes
+                
+                # Measurements (all in cm)
                 order_data['measurements']['height'],  # Height
                 order_data['measurements']['weight'],  # Weight
                 order_data['measurements'].get('waist', ''),  # Waist
@@ -94,12 +113,13 @@ class SheetsService:
                 order_data['measurements'].get('crotch_rise', ''),  # Crotch Rise
                 order_data['measurements'].get('outseam', ''),  # Outseam
                 order_data['measurements'].get('bottom_opening', ''),  # Bottom Opening
-                order_data['measurements'].get('unit', 'cm'),  # Unit
-                order_data['customer_info'].get('body_type', ''),  # Body Type
-                order_data['customer_info'].get('special_considerations', ''),  # Special Considerations
-                order_data.get('notes', ''),  # Additional Notes
-                order_data.get('order_status', 'Paid'),  # Order Status
-                order_data.get('created_at', datetime.now().isoformat())  # Created At
+                order_data['measurements'].get('unit', 'cm'),  # Measurement Unit
+                
+                # Order Details
+                f"₹{total_amount}",  # Total Amount
+                'INR',  # Currency
+                order_data.get('created_at', datetime.now().isoformat()),  # Created Date
+                datetime.now().isoformat()  # Updated Date
             ]
             
             # Append the row to the sheet
