@@ -177,7 +177,7 @@ const VirtualFitting = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="email" data-testid="email-label">Email Address *</Label>
+                  <Label htmlFor="email" data-testid="email-label" className="text-text-dark font-semibold">Email Address *</Label>
                   <Input
                     id="email"
                     data-testid="email-input"
@@ -185,18 +185,20 @@ const VirtualFitting = () => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="your.email@example.com"
+                    className="measurement-input"
                     required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone" data-testid="phone-label">Phone Number</Label>
+                  <Label htmlFor="phone" data-testid="phone-label" className="text-text-dark font-semibold">Phone Number</Label>
                   <Input
                     id="phone"
                     data-testid="phone-input"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     placeholder="+91 9876543210"
+                    className="measurement-input"
                   />
                 </div>
               </div>
