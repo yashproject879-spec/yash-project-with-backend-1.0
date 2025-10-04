@@ -856,18 +856,48 @@ const MeasurementFlow = () => {
                 </div>
               </div>
               
-              <div className="text-center">
+              <div className="text-center space-y-4">
                 <Button
                   data-testid="pay-now-btn"
                   onClick={initiatePayment}
                   disabled={isLoading}
-                  className="btn-primary px-8 py-4 text-lg"
+                  className="btn-primary px-8 py-4 text-lg w-full"
                   size="lg"
                 >
                   {isLoading ? 'Processing...' : 'Pay Now'}
                 </Button>
                 
-                <p className="text-xs text-text-light mt-3">
+                {/* Test Payment Button for Development */}
+                <div className="border-t pt-3">
+                  <p className="text-xs text-text-light mb-2">Test Mode:</p>
+                  <Button
+                    data-testid="test-payment-btn"
+                    onClick={async () => {
+                      if (!submissionId) return;
+                      setIsLoading(true);
+                      try {
+                        const response = await axios.post(
+                          `${process.env.REACT_APP_BACKEND_URL}/api/test-payment-success/${submissionId}`
+                        );
+                        if (response.data.status === 'success') {
+                          toast.success('🎉 Test payment successful! Order confirmed and data pushed to sheets.');
+                          setTimeout(() => navigate('/'), 2000);
+                        }
+                      } catch (error) {
+                        toast.error('Test payment failed');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full text-sm"
+                  >
+                    Simulate Payment Success (Test)
+                  </Button>
+                </div>
+                
+                <p className="text-xs text-text-light">
                   Secure payment powered by Razorpay
                 </p>
               </div>
