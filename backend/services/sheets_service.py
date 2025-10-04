@@ -227,6 +227,9 @@ class SheetsService:
                 'Height', 'Weight', 'Waist', 'Hip/Seat', 'Thigh', 'Crotch Rise', 
                 'Outseam', 'Bottom Opening', 'Measurement Unit',
                 
+                # Customer Images
+                'Front View Photo', 'Side View Photo', 'Reference Fit Photo',
+                
                 # Order Details
                 'Total Amount', 'Currency', 'Created Date', 'Updated Date'
             ]
