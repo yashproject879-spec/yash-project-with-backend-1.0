@@ -409,6 +409,57 @@ async def process_successful_payment(submission_data: dict, payment_id: str):
     except Exception as e:
         logger.error(f"Error in background order processing: {str(e)}")
 
+@api_router.post("/test-payment-success/{submission_id}")
+async def test_payment_success(submission_id: str, background_tasks: BackgroundTasks):
+    """Test endpoint to simulate successful payment (for development/testing only)"""
+    try:
+        # Get submission data
+        submission = await db.measurements.find_one({"id": submission_id})
+        if not submission:
+            raise HTTPException(
+                status_code=404,
+                detail="Submission not found"
+            )
+        
+        # Generate mock payment ID
+        mock_payment_id = f"pay_test_{uuid.uuid4().hex[:8]}"
+        
+        # Update order status to paid
+        await db.measurements.update_one(
+            {"id": submission_id},
+            {
+                "$set": {
+                    "order_status": "paid",
+                    "payment_id": mock_payment_id,
+                    "payment_verified_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Process order in background (THIS WILL PUSH TO SHEETS & SEND EMAILS)
+        background_tasks.add_task(
+            process_successful_payment,
+            submission,
+            mock_payment_id
+        )
+        
+        logger.info(f"TEST: Payment marked as successful for order {submission_id}")
+        
+        return {
+            "status": "success",
+            "message": "Test payment processed successfully",
+            "order_id": submission_id,
+            "payment_id": mock_payment_id,
+            "note": "This is a test payment - data will be pushed to sheets and emails sent"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in test payment: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Test payment failed"
+        )
+
 @api_router.post("/payment-failed")
 async def handle_payment_failure(submission_id: str, background_tasks: BackgroundTasks):
     """Handle failed or abandoned payments"""
