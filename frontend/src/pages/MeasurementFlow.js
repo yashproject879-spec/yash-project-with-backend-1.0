@@ -206,7 +206,7 @@ const MeasurementFlow = () => {
       
       if (response.data.status === 'success') {
         setSubmissionId(response.data.submission_id);
-        setCurrentStep(4);
+        setCurrentStep(5);
         toast.success('Measurements submitted successfully!');
       }
       
