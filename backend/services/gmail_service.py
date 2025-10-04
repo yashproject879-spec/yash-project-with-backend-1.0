@@ -41,14 +41,30 @@ class GmailService:
     
     def _get_credentials(self):
         """Get authenticated Gmail credentials"""
-        creds = Credentials(
-            token=None,
-            refresh_token=self.refresh_token,
-            token_uri="https://oauth2.googleapis.com/token",
-            client_id=self.client_id,
-            client_secret=self.client_secret
-        )
-        return creds
+        if self.use_service_account:
+            # Use service account for Gmail API
+            from google.oauth2 import service_account
+            
+            # Define the scopes
+            scopes = ['https://www.googleapis.com/auth/gmail.send']
+            
+            # Load service account credentials
+            creds = service_account.Credentials.from_service_account_file(
+                self.service_account_path, scopes=scopes)
+            
+            # If we need to impersonate a user account, we can do it here
+            # For now, we'll use the service account directly
+            return creds
+        else:
+            # Use OAuth credentials
+            creds = Credentials(
+                token=None,
+                refresh_token=self.refresh_token,
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=self.client_id,
+                client_secret=self.client_secret
+            )
+            return creds
     
     async def send_email(self, to_email: str, subject: str, body: str, is_html: bool = False) -> bool:
         """Send email using Gmail API"""
