@@ -151,24 +151,26 @@ const VirtualFitting = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="firstName" data-testid="first-name-label">First Name *</Label>
+                    <Label htmlFor="firstName" data-testid="first-name-label" className="text-text-dark font-semibold">First Name *</Label>
                     <Input
                       id="firstName"
                       data-testid="first-name-input"
                       value={formData.first_name}
                       onChange={(e) => handleInputChange('first_name', e.target.value)}
                       placeholder="Enter your first name"
+                      className="measurement-input"
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="lastName" data-testid="last-name-label">Last Name *</Label>
+                    <Label htmlFor="lastName" data-testid="last-name-label" className="text-text-dark font-semibold">Last Name *</Label>
                     <Input
                       id="lastName"
                       data-testid="last-name-input"
                       value={formData.last_name}
                       onChange={(e) => handleInputChange('last_name', e.target.value)}
                       placeholder="Enter your last name"
+                      className="measurement-input"
                       required
                     />
                   </div>
