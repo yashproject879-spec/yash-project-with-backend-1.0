@@ -92,14 +92,27 @@ class TailoringSubmission(BaseModel):
     fabric_choice: Optional[str] = Field(None, description="Selected fabric type")
     style_preferences: Optional[str] = Field(None, description="Style preferences")
     notes: Optional[str] = Field(None, max_length=500, description="Additional notes")
+    quantity: int = Field(default=1, ge=1, le=10, description="Number of items")
     session_id: Optional[str] = Field(None, description="Session tracking ID")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     order_status: str = Field(default="pending_payment")
+    payment_id: Optional[str] = Field(None, description="Razorpay payment ID")
+    razorpay_order_id: Optional[str] = Field(None, description="Razorpay order ID")
     
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
+
+class PaymentOrderRequest(BaseModel):
+    submission_id: str
+    quantity: int = Field(default=1, ge=1, le=10)
+
+class PaymentVerificationRequest(BaseModel):
+    razorpay_order_id: str
+    razorpay_payment_id: str
+    razorpay_signature: str
+    submission_id: str
 
 class VirtualFittingRequest(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
