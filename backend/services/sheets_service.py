@@ -180,35 +180,63 @@ class SheetsService:
             logger.error(f"Failed to retrieve order from sheets: {str(e)}")
             return None
     
-    def create_test_sheet(self) -> str | None:
-        """Create a test sheet for development (optional helper method)"""
+    def create_orders_sheet(self) -> str | None:
+        """Create a new orders sheet with proper structure"""
         try:
             if not self.client:
                 logger.error("Google Sheets client not initialized")
                 return None
             
             # Create a new spreadsheet
-            sheet = self.client.create('Stallion & Co. Orders - Test')
+            sheet = self.client.create('Stallion & Co. - Order Management')
             
-            # Set up headers
+            # Set up headers with comprehensive order information
             worksheet = sheet.get_worksheet(0)
             headers = [
-                'Timestamp', 'Order ID', 'Payment ID', 'Customer Name', 'Email', 'Phone', 'Age',
-                'Product', 'Quantity', 'Fabric Choice', 'Style Preferences',
-                'Height (cm)', 'Weight (kg)', 'Waist (cm)', 'Hip/Seat (cm)', 'Thigh (cm)',
-                'Crotch Rise (cm)', 'Outseam (cm)', 'Bottom Opening (cm)', 'Unit',
-                'Body Type', 'Special Considerations', 'Notes', 'Order Status', 'Created At'
+                # Order Information
+                'Timestamp', 'Order ID', 'Payment ID', 'Payment Status', 'Order Status',
+                
+                # Customer Information  
+                'Customer Name', 'First Name', 'Last Name', 'Email', 'Phone', 'Age',
+                'Body Type', 'Special Considerations',
+                
+                # Product Information
+                'Product', 'Quantity', 'Fabric Choice', 'Style Preferences', 'Additional Notes',
+                
+                # Measurements (all in cm)
+                'Height', 'Weight', 'Waist', 'Hip/Seat', 'Thigh', 'Crotch Rise', 
+                'Outseam', 'Bottom Opening', 'Measurement Unit',
+                
+                # Order Details
+                'Total Amount', 'Currency', 'Created Date', 'Updated Date'
             ]
             
             worksheet.insert_row(headers, 1)
-            worksheet.format('1:1', {'textFormat': {'bold': True}})
             
-            logger.info(f"Test sheet created with ID: {sheet.id}")
+            # Format headers
+            worksheet.format('1:1', {
+                'textFormat': {'bold': True, 'fontSize': 11},
+                'backgroundColor': {'red': 0.8, 'green': 0.8, 'blue': 0.8}
+            })
+            
+            # Set column widths for better readability
+            worksheet.columns_auto_resize(0, len(headers))
+            
+            # Share the sheet (make it accessible)
+            sheet.share('', perm_type='anyone', role='reader')
+            
+            logger.info(f"Orders sheet created with ID: {sheet.id}")
+            logger.info(f"Sheet URL: https://docs.google.com/spreadsheets/d/{sheet.id}")
+            
             return sheet.id
             
         except Exception as e:
-            logger.error(f"Failed to create test sheet: {str(e)}")
+            logger.error(f"Failed to create orders sheet: {str(e)}")
             return None
+    
+    def create_test_sheet(self) -> str | None:
+        """Create a test sheet for development (optional helper method)"""
+        return self.create_orders_sheet()
 
 # Create singleton instance
 sheets_service = SheetsService()
