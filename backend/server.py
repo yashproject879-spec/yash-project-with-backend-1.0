@@ -492,6 +492,47 @@ async def setup_google_sheet():
             detail=f"Failed to setup Google Sheet: {str(e)}"
         )
 
+@api_router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...), image_type: str = Form(...)):
+    """Upload customer image for measurements"""
+    try:
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+            )
+        
+        # Generate unique filename
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        unique_filename = f"{uuid.uuid4()}_{image_type}.{file_extension}"
+        file_path = UPLOAD_DIR / unique_filename
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        # Return file URL
+        file_url = f"/uploads/{unique_filename}"
+        
+        logger.info(f"Image uploaded successfully: {file_url}")
+        
+        return {
+            "status": "success",
+            "file_url": file_url,
+            "filename": unique_filename,
+            "image_type": image_type
+        }
+        
+    except Exception as e:
+        logger.error(f"Error uploading image: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to upload image"
+        )
+
 @api_router.get("/health")
 async def health_check():
     """Health check endpoint"""
