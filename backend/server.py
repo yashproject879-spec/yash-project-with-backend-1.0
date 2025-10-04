@@ -232,12 +232,221 @@ async def get_measurement(submission_id: str):
             detail="Internal server error occurred"
         )
 
+@api_router.post("/create-payment-order")
+async def create_payment_order(request: PaymentOrderRequest):
+    """Create Razorpay order for payment"""
+    try:
+        # Get the submission data
+        submission = await db.measurements.find_one({"id": request.submission_id})
+        if not submission:
+            raise HTTPException(
+                status_code=404,
+                detail="Submission not found"
+            )
+        
+        # Calculate total amount
+        total_amount = BASE_PRICE_PAISE * request.quantity
+        
+        # Create Razorpay order
+        razorpay_order = razorpay_client.order.create({
+            "amount": total_amount,
+            "currency": "INR",
+            "receipt": f"order_{request.submission_id}",
+            "notes": {
+                "submission_id": request.submission_id,
+                "customer_email": submission["customer_info"]["email"],
+                "quantity": str(request.quantity)
+            }
+        })
+        
+        # Update submission with Razorpay order details
+        await db.measurements.update_one(
+            {"id": request.submission_id},
+            {
+                "$set": {
+                    "razorpay_order_id": razorpay_order["id"],
+                    "quantity": request.quantity,
+                    "total_amount": total_amount,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        logger.info(f"Payment order created for submission {request.submission_id}")
+        
+        return {
+            "order_id": razorpay_order["id"],
+            "amount": total_amount,
+            "currency": "INR",
+            "key": os.environ.get('RAZORPAY_KEY_ID'),
+            "submission_id": request.submission_id
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating payment order: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create payment order"
+        )
+
+@api_router.post("/verify-payment")
+async def verify_payment(request: PaymentVerificationRequest, background_tasks: BackgroundTasks):
+    """Verify Razorpay payment and process order"""
+    try:
+        # Verify signature
+        razorpay_key_secret = os.environ.get('RAZORPAY_KEY_SECRET')
+        generated_signature = hmac.new(
+            razorpay_key_secret.encode(),
+            f"{request.razorpay_order_id}|{request.razorpay_payment_id}".encode(),
+            hashlib.sha256
+        ).hexdigest()
+        
+        if generated_signature != request.razorpay_signature:
+            raise HTTPException(
+                status_code=400,
+                detail="Payment signature verification failed"
+            )
+        
+        # Get submission data
+        submission = await db.measurements.find_one({"id": request.submission_id})
+        if not submission:
+            raise HTTPException(
+                status_code=404,
+                detail="Submission not found"
+            )
+        
+        # Update order status to paid
+        await db.measurements.update_one(
+            {"id": request.submission_id},
+            {
+                "$set": {
+                    "order_status": "paid",
+                    "payment_id": request.razorpay_payment_id,
+                    "payment_verified_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Process order in background (email + sheets)
+        background_tasks.add_task(
+            process_successful_payment,
+            submission,
+            request.razorpay_payment_id
+        )
+        
+        logger.info(f"Payment verified successfully for order {request.submission_id}")
+        
+        return {
+            "status": "success",
+            "message": "Payment verified and order confirmed",
+            "order_id": request.submission_id,
+            "payment_id": request.razorpay_payment_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error verifying payment: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Payment verification failed"
+        )
+
+async def process_successful_payment(submission_data: dict, payment_id: str):
+    """Background task to process successful payments"""
+    try:
+        logger.info(f"Processing successful payment for order {submission_data['id']}")
+        
+        # Send confirmation email to customer
+        email_sent = await gmail_service.send_order_confirmation(submission_data)
+        if not email_sent:
+            logger.error(f"Failed to send confirmation email for order {submission_data['id']}")
+        
+        # Send internal notification
+        notification_sent = await gmail_service.send_internal_notification(submission_data, payment_id)
+        if not notification_sent:
+            logger.error(f"Failed to send internal notification for order {submission_data['id']}")
+        
+        # Push to Google Sheets
+        sheets_updated = await sheets_service.push_order_data(submission_data, payment_id)
+        if not sheets_updated:
+            logger.error(f"Failed to update Google Sheets for order {submission_data['id']}")
+        
+        logger.info(f"Order processing completed for {submission_data['id']}")
+        
+    except Exception as e:
+        logger.error(f"Error in background order processing: {str(e)}")
+
+@api_router.post("/payment-failed")
+async def handle_payment_failure(submission_id: str, background_tasks: BackgroundTasks):
+    """Handle failed or abandoned payments"""
+    try:
+        # Update order status
+        await db.measurements.update_one(
+            {"id": submission_id},
+            {
+                "$set": {
+                    "order_status": "payment_failed",
+                    "payment_failed_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        # Optionally send reminder email
+        submission = await db.measurements.find_one({"id": submission_id})
+        if submission:
+            # Create new payment link (you can implement this)
+            payment_link = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/payment/{submission_id}"
+            
+            background_tasks.add_task(
+                gmail_service.send_payment_reminder,
+                submission,
+                payment_link
+            )
+        
+        return {"status": "Payment failure recorded"}
+        
+    except Exception as e:
+        logger.error(f"Error handling payment failure: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to handle payment failure"
+        )
+
+@api_router.get("/order-status/{submission_id}")
+async def get_order_status(submission_id: str):
+    """Get order status"""
+    try:
+        submission = await db.measurements.find_one({"id": submission_id})
+        if not submission:
+            raise HTTPException(
+                status_code=404,
+                detail="Order not found"
+            )
+        
+        return {
+            "order_id": submission["id"],
+            "status": submission.get("order_status", "unknown"),
+            "created_at": submission.get("created_at"),
+            "payment_id": submission.get("payment_id"),
+            "customer_email": submission["customer_info"]["email"]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error retrieving order status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve order status"
+        )
+
 @api_router.get("/health")
 async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": "Stallion & Co. API"
     }
 
