@@ -15,48 +15,17 @@ class SheetsService:
         self._initialize_client()
     
     def _initialize_client(self):
-        """Initialize Google Sheets client using service account or OAuth credentials"""
+        """Initialize Google Sheets client using service account"""
         try:
-            # Try to use service account key first
-            service_account_key = os.getenv('GOOGLE_SERVICE_ACCOUNT_KEY')
             service_account_path = os.getenv('GOOGLE_SERVICE_ACCOUNT_PATH')
             
-            if service_account_key:
-                # Create a temporary service account file from the key
-                import tempfile
-                import json
-                
-                # Try to parse as JSON (full service account)
-                try:
-                    service_account_info = json.loads(service_account_key)
-                    self.client = gspread.service_account_from_dict(service_account_info)
-                    logger.info("Google Sheets client initialized with service account key (JSON)")
-                except json.JSONDecodeError:
-                    # If not JSON, try using OAuth with the key as additional auth
-                    logger.warning("Service account key is not valid JSON, falling back to OAuth")
-                    raise ValueError("Invalid service account key format")
-                    
-            elif service_account_path and os.path.exists(service_account_path):
+            if service_account_path and os.path.exists(service_account_path):
+                # Use the service account file
                 self.client = gspread.service_account(filename=service_account_path)
-                logger.info("Google Sheets client initialized with service account file")
+                logger.info(f"Google Sheets client initialized with service account: {service_account_path}")
             else:
-                # Fallback to OAuth credentials using Gmail setup
-                from google.oauth2.credentials import Credentials as OAuthCreds
-                
-                creds = OAuthCreds(
-                    token=None,
-                    refresh_token=os.getenv('GMAIL_REFRESH_TOKEN'),
-                    token_uri="https://oauth2.googleapis.com/token",
-                    client_id=os.getenv('GMAIL_CLIENT_ID'),
-                    client_secret=os.getenv('GMAIL_CLIENT_SECRET'),
-                    scopes=[
-                        'https://www.googleapis.com/auth/spreadsheets',
-                        'https://www.googleapis.com/auth/drive.file'
-                    ]
-                )
-                
-                self.client = gspread.authorize(creds)
-                logger.info("Google Sheets client initialized with OAuth credentials")
+                logger.error(f"Service account file not found at: {service_account_path}")
+                self.client = None
                 
         except Exception as e:
             logger.error(f"Failed to initialize Google Sheets client: {str(e)}")
