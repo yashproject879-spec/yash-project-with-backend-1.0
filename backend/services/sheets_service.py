@@ -18,13 +18,19 @@ class SheetsService:
         """Initialize Google Sheets client using service account"""
         try:
             service_account_path = os.getenv('GOOGLE_SERVICE_ACCOUNT_PATH')
+            logger.info(f"Looking for service account at: {service_account_path}")
             
-            if service_account_path and os.path.exists(service_account_path):
+            # Hardcode the path as fallback
+            if not service_account_path:
+                service_account_path = '/app/backend/google_service_account.json'
+                logger.info(f"Using hardcoded path: {service_account_path}")
+            
+            if os.path.exists(service_account_path):
                 # Use the service account file
                 self.client = gspread.service_account(filename=service_account_path)
-                logger.info(f"Google Sheets client initialized with service account: {service_account_path}")
+                logger.info(f"✅ Google Sheets client initialized with service account: {service_account_path}")
             else:
-                logger.error(f"Service account file not found at: {service_account_path}")
+                logger.error(f"❌ Service account file not found at: {service_account_path}")
                 self.client = None
                 
         except Exception as e:
