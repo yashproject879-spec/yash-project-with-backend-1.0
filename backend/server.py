@@ -443,25 +443,34 @@ async def get_order_status(submission_id: str):
 
 @api_router.post("/setup-google-sheet")
 async def setup_google_sheet():
-    """Create and setup Google Sheet for order management"""
+    """Setup Google Sheet headers for order management"""
     try:
-        # Create the orders sheet
-        sheet_id = sheets_service.create_orders_sheet()
+        # Try to set up headers in the existing sheet
+        headers_setup = await sheets_service.setup_sheet_headers()
         
-        if not sheet_id:
+        if not headers_setup:
             raise HTTPException(
                 status_code=500,
-                detail="Failed to create Google Sheet"
+                detail="Failed to setup Google Sheet headers"
             )
         
-        logger.info(f"Google Sheet created successfully with ID: {sheet_id}")
+        sheet_id = os.environ.get('GOOGLE_SHEET_ID')
+        logger.info(f"Google Sheet headers set up successfully for sheet: {sheet_id}")
         
         return {
             "status": "success",
-            "message": "Google Sheet created successfully",
+            "message": "Google Sheet headers configured successfully",
             "sheet_id": sheet_id,
             "sheet_url": f"https://docs.google.com/spreadsheets/d/{sheet_id}",
-            "instructions": "Copy the sheet_id and add it to your .env file as GOOGLE_SHEET_ID"
+            "headers": [
+                "Timestamp", "Order ID", "Payment ID", "Payment Status", "Order Status",
+                "Customer Name", "First Name", "Last Name", "Email", "Phone", "Age",
+                "Body Type", "Special Considerations", "Product", "Quantity", 
+                "Fabric Choice", "Style Preferences", "Additional Notes",
+                "Height", "Weight", "Waist", "Hip/Seat", "Thigh", "Crotch Rise",
+                "Outseam", "Bottom Opening", "Measurement Unit", 
+                "Total Amount", "Currency", "Created Date", "Updated Date"
+            ]
         }
         
     except Exception as e:
