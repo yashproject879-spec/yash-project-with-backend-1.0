@@ -17,14 +17,30 @@ class SheetsService:
     def _initialize_client(self):
         """Initialize Google Sheets client using service account or OAuth credentials"""
         try:
-            # Try to use service account first (preferred for production)
+            # Try to use service account key first
+            service_account_key = os.getenv('GOOGLE_SERVICE_ACCOUNT_KEY')
             service_account_path = os.getenv('GOOGLE_SERVICE_ACCOUNT_PATH')
-            if service_account_path and os.path.exists(service_account_path):
+            
+            if service_account_key:
+                # Create a temporary service account file from the key
+                import tempfile
+                import json
+                
+                # Try to parse as JSON (full service account)
+                try:
+                    service_account_info = json.loads(service_account_key)
+                    self.client = gspread.service_account_from_dict(service_account_info)
+                    logger.info("Google Sheets client initialized with service account key (JSON)")
+                except json.JSONDecodeError:
+                    # If not JSON, try using OAuth with the key as additional auth
+                    logger.warning("Service account key is not valid JSON, falling back to OAuth")
+                    raise ValueError("Invalid service account key format")
+                    
+            elif service_account_path and os.path.exists(service_account_path):
                 self.client = gspread.service_account(filename=service_account_path)
-                logger.info("Google Sheets client initialized with service account")
+                logger.info("Google Sheets client initialized with service account file")
             else:
-                # Fallback to OAuth credentials for development
-                # This uses the same Gmail OAuth setup for sheets access
+                # Fallback to OAuth credentials using Gmail setup
                 from google.oauth2.credentials import Credentials as OAuthCreds
                 
                 creds = OAuthCreds(
