@@ -115,6 +115,11 @@ class SheetsService:
                 order_data['measurements'].get('bottom_opening', ''),  # Bottom Opening
                 order_data['measurements'].get('unit', 'cm'),  # Measurement Unit
                 
+                # Customer Images
+                order_data.get('front_view_photo', ''),  # Front View Photo
+                order_data.get('side_view_photo', ''),  # Side View Photo
+                order_data.get('reference_fit_photo', ''),  # Reference Fit Photo
+                
                 # Order Details
                 f"₹{total_amount}",  # Total Amount
                 'INR',  # Currency
