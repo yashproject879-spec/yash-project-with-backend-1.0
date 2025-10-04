@@ -145,8 +145,8 @@ const VirtualFitting = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Personal Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
-                  <span>Personal Information</span>
+                <h3 className="font-serif text-xl font-semibold text-maroon-600 mb-4">
+                  Personal Information
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
