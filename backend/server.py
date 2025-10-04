@@ -441,6 +441,36 @@ async def get_order_status(submission_id: str):
             detail="Failed to retrieve order status"
         )
 
+@api_router.post("/setup-google-sheet")
+async def setup_google_sheet():
+    """Create and setup Google Sheet for order management"""
+    try:
+        # Create the orders sheet
+        sheet_id = sheets_service.create_orders_sheet()
+        
+        if not sheet_id:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create Google Sheet"
+            )
+        
+        logger.info(f"Google Sheet created successfully with ID: {sheet_id}")
+        
+        return {
+            "status": "success",
+            "message": "Google Sheet created successfully",
+            "sheet_id": sheet_id,
+            "sheet_url": f"https://docs.google.com/spreadsheets/d/{sheet_id}",
+            "instructions": "Copy the sheet_id and add it to your .env file as GOOGLE_SHEET_ID"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error setting up Google Sheet: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to setup Google Sheet: {str(e)}"
+        )
+
 @api_router.get("/health")
 async def health_check():
     """Health check endpoint"""
