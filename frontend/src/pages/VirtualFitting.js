@@ -6,23 +6,22 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Scissors, ArrowLeft, Video, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 
 const VirtualFitting = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    first_name: '',
+    last_name: '',
     email: '',
     phone: '',
-    preferredDate: '',
-    preferredTime: '',
-    fittingType: 'virtual_consultation',
+    preferred_date: '',
+    preferred_time: '',
+    fitting_type: 'virtual_consultation',
     notes: ''
   });
 
@@ -30,25 +29,46 @@ const VirtualFitting = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const validateForm = () => {
+    if (!formData.first_name || !formData.last_name || !formData.email) {
+      toast.error('Please fill in all required fields');
+      return false;
+    }
+    
+    const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Please enter a valid email address');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setIsLoading(true);
     
     try {
-      const submissionData = {
+      const requestData = {
         customer_info: {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
           email: formData.email,
           phone: formData.phone
         },
-        preferred_date: formData.preferredDate,
-        preferred_time: formData.preferredTime,
-        fitting_type: formData.fittingType,
+        preferred_date: formData.preferred_date,
+        preferred_time: formData.preferred_time,
+        fitting_type: formData.fitting_type,
         notes: formData.notes
       };
-
-      const response = await axios.post(`${API}/virtual-fitting`, submissionData);
+      
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/virtual-fitting`,
+        requestData
+      );
       
       if (response.data.status === 'success') {
         toast.success('Virtual fitting consultation booked successfully!');
@@ -58,350 +78,247 @@ const VirtualFitting = () => {
       }
       
     } catch (error) {
-      console.error('Error booking virtual fitting:', error);
+      console.error('Booking error:', error);
       toast.error('Failed to book consultation. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Generate time slots
   const timeSlots = [
-    '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
+    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+    '12:00', '12:30', '14:00', '14:30', '15:00', '15:30',
+    '16:00', '16:30', '17:00', '17:30', '18:00'
   ];
 
+  // Get minimum date (tomorrow)
+  const getMinDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-md border-b border-beige-200">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <button
-                onClick={() => navigate('/')}
-                className="mr-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <svg className="w-6 h-6 text-maroon-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-maroon-600">
-                Stallion & Co.
-              </h1>
-            </div>
-            
+      <nav className="backdrop-blur-sm bg-white/70 border-b border-white/20 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
               <Button 
-                onClick={() => navigate('/product')}
-                variant="outline"
-                className="px-6 py-2 border-2 transition-all duration-300"
-                style={{
-                  borderColor: '#6F0914',
-                  color: '#6F0914',
-                  backgroundColor: 'transparent'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#6F0914';
-                  e.target.style.color = '#F7F2DE';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = 'transparent';
-                  e.target.style.color = '#6F0914';
-                }}
+                data-testid="back-home-btn"
+                variant="ghost" 
+                onClick={() => navigate('/')} 
+                className="flex items-center space-x-2 text-slate-600 hover:text-slate-900"
               >
-                Shop Now
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Home</span>
               </Button>
+              
+              <div className="flex items-center space-x-2">
+                <Scissors className="h-8 w-8 text-indigo-600" />
+                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                  Stallion & Co.
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-maroon-600 to-maroon-800 text-white">
-        <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-          <h1 className="font-serif text-4xl lg:text-6xl font-bold mb-6">
-            Virtual Fitting
-            <br />
-            <span className="text-accent-gold">Consultation</span>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Video className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2" data-testid="page-title">
+            Virtual Fitting Consultation
           </h1>
-          <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-            Experience personalized fitting guidance from our master tailors.
-            <br />
-            Get expert advice on measurements, fabric selection, and styling.
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            Schedule a one-on-one virtual consultation with our master tailors to discuss your requirements and preferences.
           </p>
         </div>
-      </section>
 
-      {/* Main Content */}
-      <div className="py-16 px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Booking Form */}
-            <Card className="luxury-card" data-testid="virtual-fitting-form">
-              <CardHeader>
-                <CardTitle className="font-serif text-3xl text-maroon-600">
-                  Book Your Consultation
-                </CardTitle>
-                <p className="text-text-light">
-                  Schedule a personalized virtual fitting session with our expert tailors
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="firstName" className="text-maroon-600 font-semibold">First Name *</Label>
-                      <Input
-                        id="firstName"
-                        data-testid="first-name-input"
-                        value={formData.firstName}
-                        onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="measurement-input"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName" className="text-maroon-600 font-semibold">Last Name *</Label>
-                      <Input
-                        id="lastName"
-                        data-testid="last-name-input"
-                        value={formData.lastName}
-                        onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="measurement-input"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
+        <Card className="max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-center">Book Your Consultation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
+                  <span>Personal Information</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="email" className="text-maroon-600 font-semibold">Email Address *</Label>
+                    <Label htmlFor="firstName" data-testid="first-name-label">First Name *</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      data-testid="email-input"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="measurement-input"
+                      id="firstName"
+                      data-testid="first-name-input"
+                      value={formData.first_name}
+                      onChange={(e) => handleInputChange('first_name', e.target.value)}
+                      placeholder="Enter your first name"
                       required
                     />
                   </div>
-                  
                   <div>
-                    <Label htmlFor="phone" className="text-maroon-600 font-semibold">Phone Number</Label>
+                    <Label htmlFor="lastName" data-testid="last-name-label">Last Name *</Label>
                     <Input
-                      id="phone"
-                      data-testid="phone-input"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      className="measurement-input"
+                      id="lastName"
+                      data-testid="last-name-input"
+                      value={formData.last_name}
+                      onChange={(e) => handleInputChange('last_name', e.target.value)}
+                      placeholder="Enter your last name"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="email" data-testid="email-label">Email Address *</Label>
+                  <Input
+                    id="email"
+                    data-testid="email-input"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="phone" data-testid="phone-label">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    data-testid="phone-input"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="+91 9876543210"
+                  />
+                </div>
+              </div>
+
+              {/* Appointment Details */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>Preferred Appointment</span>
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="preferredDate" data-testid="preferred-date-label">Preferred Date</Label>
+                    <Input
+                      id="preferredDate"
+                      data-testid="preferred-date-input"
+                      type="date"
+                      min={getMinDate()}
+                      value={formData.preferred_date}
+                      onChange={(e) => handleInputChange('preferred_date', e.target.value)}
                     />
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label htmlFor="preferredDate" className="text-maroon-600 font-semibold">Preferred Date</Label>
-                      <Input
-                        id="preferredDate"
-                        type="date"
-                        data-testid="preferred-date-input"
-                        value={formData.preferredDate}
-                        onChange={(e) => handleInputChange('preferredDate', e.target.value)}
-                        className="measurement-input"
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="preferredTime" className="text-maroon-600 font-semibold">Preferred Time</Label>
-                      <Select onValueChange={(value) => handleInputChange('preferredTime', value)}>
-                        <SelectTrigger data-testid="preferred-time-select">
-                          <SelectValue placeholder="Select time slot" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {timeSlots.map((time) => (
-                            <SelectItem key={time} value={time}>{time}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
                   <div>
-                    <Label htmlFor="fittingType" className="text-maroon-600 font-semibold">Consultation Type</Label>
-                    <Select onValueChange={(value) => handleInputChange('fittingType', value)} defaultValue="virtual_consultation">
-                      <SelectTrigger data-testid="fitting-type-select">
-                        <SelectValue />
+                    <Label htmlFor="preferredTime" data-testid="preferred-time-label">Preferred Time</Label>
+                    <Select value={formData.preferred_time} onValueChange={(value) => handleInputChange('preferred_time', value)}>
+                      <SelectTrigger data-testid="preferred-time-select">
+                        <SelectValue placeholder="Select time slot" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="virtual_consultation">Virtual Consultation</SelectItem>
-                        <SelectItem value="measurement_guidance">Measurement Guidance</SelectItem>
-                        <SelectItem value="fabric_selection">Fabric Selection Help</SelectItem>
-                        <SelectItem value="styling_advice">Styling Advice</SelectItem>
+                        {timeSlots.map((time) => (
+                          <SelectItem key={time} value={time}>
+                            <div className="flex items-center space-x-2">
+                              <Clock className="h-4 w-4" />
+                              <span>{time}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="notes" className="text-maroon-600 font-semibold">Notes & Preferences</Label>
-                    <Textarea
-                      id="notes"
-                      data-testid="notes-input"
-                      value={formData.notes}
-                      onChange={(e) => handleInputChange('notes', e.target.value)}
-                      placeholder="Tell us about your specific needs, preferences, or questions..."
-                      className="measurement-input min-h-[120px]"
-                    />
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={!formData.firstName || !formData.lastName || !formData.email || isLoading}
-                    className="w-full py-4 text-lg font-semibold rounded-lg transition-all duration-300 hover:scale-105"
-                    style={{ 
-                      backgroundColor: '#6F0914',
-                      color: '#F7F2DE'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!e.target.disabled) {
-                        e.target.style.backgroundColor = '#5A0710';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!e.target.disabled) {
-                        e.target.style.backgroundColor = '#6F0914';
-                      }
-                    }}
-                    data-testid="book-consultation-btn"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center justify-center space-x-2">
-                        <div className="loading-spinner"></div>
-                        <span>Booking...</span>
-                      </div>
-                    ) : (
-                      'Book Consultation'
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                </div>
+                
+                <div>
+                  <Label htmlFor="consultationType" data-testid="consultation-type-label">Consultation Type</Label>
+                  <Select value={formData.fitting_type} onValueChange={(value) => handleInputChange('fitting_type', value)}>
+                    <SelectTrigger data-testid="consultation-type-select">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="virtual_consultation">Virtual Consultation (Video Call)</SelectItem>
+                      <SelectItem value="measurement_guidance">Measurement Guidance</SelectItem>
+                      <SelectItem value="style_consultation">Style & Fabric Consultation</SelectItem>
+                      <SelectItem value="general_inquiry">General Inquiry</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            {/* Benefits & Information */}
-            <div className="space-y-8">
-              <Card className="luxury-card">
-                <CardHeader>
-                  <CardTitle className="font-serif text-2xl text-maroon-600">
-                    What to Expect
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-maroon-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg text-maroon-600 mb-2">Personal Consultation</h4>
-                        <p className="text-text-light">One-on-one session with our master tailor via video call</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-accent-gold rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13H14a1 1 0 01-1-1z" clipRule="evenodd"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg text-maroon-600 mb-2">Measurement Guidance</h4>
-                        <p className="text-text-light">Step-by-step guidance on taking accurate measurements</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-maroon-600 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg text-maroon-600 mb-2">Fabric & Style Advice</h4>
-                        <p className="text-text-light">Expert recommendations on fabrics and styling options</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-accent-gold rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-lg text-maroon-600 mb-2">45-Minute Session</h4>
-                        <p className="text-text-light">Comprehensive consultation covering all your tailoring needs</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="luxury-card bg-maroon-50">
-                <CardContent className="p-6">
-                  <h4 className="font-serif text-xl font-bold text-maroon-600 mb-4">
-                    Preparation Tips
-                  </h4>
-                  <ul className="space-y-3 text-text-dark">
-                    <li className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0"></div>
-                      <span>Have a measuring tape ready (we'll guide you through using it)</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0"></div>
-                      <span>Wear well-fitted clothing similar to your desired style</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0"></div>
-                      <span>Prepare any specific questions about fit or styling</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <div className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0"></div>
-                      <span>Ensure good lighting and a stable internet connection</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-              
-              <Card className="luxury-card">
-                <CardContent className="p-6 text-center">
-                  <h4 className="font-serif text-xl font-bold text-maroon-600 mb-2">
-                    Complimentary Service
-                  </h4>
-                  <p className="text-text-light mb-4">
-                    Virtual fitting consultations are complimentary for all Stallion & Co. customers
-                  </p>
-                  <div className="flex justify-center space-x-4">
-                    <Button
-                      onClick={() => navigate('/product')}
-                      className="px-6 py-2 rounded-lg transition-all duration-300"
-                      style={{ 
-                        backgroundColor: '#6F0914',
-                        color: '#F7F2DE'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#5A0710';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#6F0914';
-                      }}
-                    >
-                      Shop Collection
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+              {/* Additional Notes */}
+              <div>
+                <Label htmlFor="notes" data-testid="notes-label">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  data-testid="notes-input"
+                  value={formData.notes}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  placeholder="Tell us about your requirements, style preferences, or any questions you have..."
+                  rows={4}
+                />
+              </div>
+
+              {/* Information Box */}
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-800 mb-2">What to Expect</h4>
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• 30-minute one-on-one consultation with our master tailor</li>
+                  <li>• Personalized style and fabric recommendations</li>
+                  <li>• Professional measurement guidance</li>
+                  <li>• Discussion of your specific requirements and preferences</li>
+                  <li>• No commitment required - completely free consultation</li>
+                </ul>
+              </div>
+
+              <Button
+                data-testid="book-consultation-btn"
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                size="lg"
+              >
+                {isLoading ? 'Booking...' : 'Book Free Consultation'}
+              </Button>
+
+              <p className="text-xs text-slate-500 text-center">
+                We'll contact you within 24 hours to confirm your appointment details.
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Features Section */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <Card className="text-center p-6">
+            <Video className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
+            <h3 className="font-semibold text-slate-900 mb-2">Video Consultation</h3>
+            <p className="text-sm text-slate-600">Face-to-face discussion with our expert tailors from the comfort of your home.</p>
+          </Card>
+          
+          <Card className="text-center p-6">
+            <Calendar className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
+            <h3 className="font-semibold text-slate-900 mb-2">Flexible Scheduling</h3>
+            <p className="text-sm text-slate-600">Choose a time that works for you with our flexible appointment system.</p>
+          </Card>
+          
+          <Card className="text-center p-6">
+            <Scissors className="h-12 w-12 text-indigo-600 mx-auto mb-4" />
+            <h3 className="font-semibold text-slate-900 mb-2">Expert Guidance</h3>
+            <p className="text-sm text-slate-600">Get professional advice on measurements, fabrics, and styling options.</p>
+          </Card>
         </div>
       </div>
     </div>
