@@ -86,6 +86,45 @@ const MeasurementFlow = () => {
     setOrderDetails(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = async (file, imageType) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('image_type', imageType);
+
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/upload-image`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.status === 'success') {
+        const fileUrl = `${process.env.REACT_APP_BACKEND_URL}${response.data.file_url}`;
+        setUploadedImages(prev => ({
+          ...prev,
+          [imageType]: fileUrl
+        }));
+        toast.success(`${imageType.replace('_', ' ')} photo uploaded successfully!`);
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Failed to upload image. Please try again.');
+    }
+  };
+
+  const handleImageChange = (imageType, file) => {
+    setImages(prev => ({ ...prev, [imageType]: file }));
+    if (file) {
+      handleImageUpload(file, imageType);
+    }
+  };
+
   const validateStep = (step) => {
     if (step === 1) {
       if (!customerInfo.first_name || !customerInfo.last_name || !customerInfo.email) {
