@@ -768,7 +768,7 @@ const MeasurementFlow = () => {
           </Card>
         );
       
-      case 4:
+      case 5:
         return (
           <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
