@@ -12,6 +12,9 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 import razorpay
+
+# Load environment variables
+load_dotenv()
 import hmac
 import hashlib
 import json
