@@ -288,7 +288,7 @@ const VirtualFitting = () => {
                 data-testid="book-consultation-btn"
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full btn-primary py-4 text-lg"
                 size="lg"
               >
                 {isLoading ? 'Booking...' : 'Book Free Consultation'}
