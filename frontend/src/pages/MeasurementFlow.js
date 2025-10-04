@@ -15,6 +15,9 @@ const MeasurementFlow = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submissionId, setSubmissionId] = useState(null);
   
+  // Get product selection from sessionStorage
+  const [productSelection, setProductSelection] = useState(null);
+  
   // Form state
   const [customerInfo, setCustomerInfo] = useState({
     first_name: '',
@@ -45,6 +48,20 @@ const MeasurementFlow = () => {
     quantity: 1
   });
 
+  useEffect(() => {
+    // Load product selection from sessionStorage
+    const stored = sessionStorage.getItem('productSelection');
+    if (stored) {
+      const selection = JSON.parse(stored);
+      setProductSelection(selection);
+      setOrderDetails(prev => ({ 
+        ...prev, 
+        fabric_choice: selection.fabric || '',
+        quantity: selection.quantity || 1 
+      }));
+    }
+  }, []);
+
   const handleCustomerInfoChange = (field, value) => {
     setCustomerInfo(prev => ({ ...prev, [field]: value }));
   };
@@ -63,8 +80,7 @@ const MeasurementFlow = () => {
         toast.error('Please fill in all required customer information fields');
         return false;
       }
-      // Email validation
-      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
+      const emailRegex = /^[^@]+@[^@]+\\.[^@]+$/;
       if (!emailRegex.test(customerInfo.email)) {
         toast.error('Please enter a valid email address');
         return false;
@@ -100,7 +116,7 @@ const MeasurementFlow = () => {
   };
 
   const submitOrder = async () => {
-    if (!validateStep(2)) return; // Validate measurements again
+    if (!validateStep(2)) return;
     
     setIsLoading(true);
     
@@ -134,7 +150,7 @@ const MeasurementFlow = () => {
       
       if (response.data.status === 'success') {
         setSubmissionId(response.data.submission_id);
-        setCurrentStep(4); // Move to payment step
+        setCurrentStep(4);
         toast.success('Measurements submitted successfully!');
       }
       
@@ -155,7 +171,6 @@ const MeasurementFlow = () => {
     setIsLoading(true);
     
     try {
-      // Create payment order
       const orderResponse = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/create-payment-order`,
         {
@@ -166,7 +181,6 @@ const MeasurementFlow = () => {
       
       const { order_id, amount, currency, key } = orderResponse.data;
       
-      // Initialize Razorpay
       const options = {
         key: key,
         amount: amount,
@@ -176,7 +190,6 @@ const MeasurementFlow = () => {
         order_id: order_id,
         handler: async function (response) {
           try {
-            // Verify payment
             const verifyResponse = await axios.post(
               `${process.env.REACT_APP_BACKEND_URL}/api/verify-payment`,
               {
@@ -189,7 +202,6 @@ const MeasurementFlow = () => {
             
             if (verifyResponse.data.status === 'success') {
               toast.success('Payment successful! Order confirmed.');
-              // Redirect to success page or order status
               setTimeout(() => {
                 navigate('/');
               }, 2000);
@@ -206,7 +218,7 @@ const MeasurementFlow = () => {
           contact: customerInfo.phone
         },
         theme: {
-          color: '#4F46E5'
+          color: '#7f1d1d'
         },
         modal: {
           ondismiss: function() {
@@ -234,41 +246,40 @@ const MeasurementFlow = () => {
     switch (currentStep) {
       case 1:
         return (
-          <Card className="w-full max-w-2xl mx-auto">
+          <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="h-5 w-5 text-indigo-600" />
-                <span>Personal Information</span>
-              </CardTitle>
+              <CardTitle className="font-serif text-2xl text-maroon-600">Personal Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName" data-testid="first-name-label">First Name *</Label>
+                  <Label htmlFor="firstName" className="text-text-dark font-semibold">First Name *</Label>
                   <Input
                     id="firstName"
                     data-testid="first-name-input"
                     value={customerInfo.first_name}
                     onChange={(e) => handleCustomerInfoChange('first_name', e.target.value)}
                     placeholder="Enter your first name"
+                    className="measurement-input"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName" data-testid="last-name-label">Last Name *</Label>
+                  <Label htmlFor="lastName" className="text-text-dark font-semibold">Last Name *</Label>
                   <Input
                     id="lastName"
                     data-testid="last-name-input"
                     value={customerInfo.last_name}
                     onChange={(e) => handleCustomerInfoChange('last_name', e.target.value)}
                     placeholder="Enter your last name"
+                    className="measurement-input"
                     required
                   />
                 </div>
               </div>
               
               <div>
-                <Label htmlFor="email" data-testid="email-label">Email Address *</Label>
+                <Label htmlFor="email" className="text-text-dark font-semibold">Email Address *</Label>
                 <Input
                   id="email"
                   data-testid="email-input"
@@ -276,23 +287,25 @@ const MeasurementFlow = () => {
                   value={customerInfo.email}
                   onChange={(e) => handleCustomerInfoChange('email', e.target.value)}
                   placeholder="your.email@example.com"
+                  className="measurement-input"
                   required
                 />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="phone" data-testid="phone-label">Phone Number</Label>
+                  <Label htmlFor="phone" className="text-text-dark font-semibold">Phone Number</Label>
                   <Input
                     id="phone"
                     data-testid="phone-input"
                     value={customerInfo.phone}
                     onChange={(e) => handleCustomerInfoChange('phone', e.target.value)}
                     placeholder="+91 9876543210"
+                    className="measurement-input"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="age" data-testid="age-label">Age</Label>
+                  <Label htmlFor="age" className="text-text-dark font-semibold">Age</Label>
                   <Input
                     id="age"
                     data-testid="age-input"
@@ -302,14 +315,15 @@ const MeasurementFlow = () => {
                     value={customerInfo.age}
                     onChange={(e) => handleCustomerInfoChange('age', e.target.value)}
                     placeholder="25"
+                    className="measurement-input"
                   />
                 </div>
               </div>
               
               <div>
-                <Label htmlFor="bodyType" data-testid="body-type-label">Body Type (Optional)</Label>
+                <Label htmlFor="bodyType" className="text-text-dark font-semibold">Body Type (Optional)</Label>
                 <Select value={customerInfo.body_type} onValueChange={(value) => handleCustomerInfoChange('body_type', value)}>
-                  <SelectTrigger data-testid="body-type-select">
+                  <SelectTrigger data-testid="body-type-select" className="measurement-input">
                     <SelectValue placeholder="Select your body type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -322,13 +336,14 @@ const MeasurementFlow = () => {
               </div>
               
               <div>
-                <Label htmlFor="specialConsiderations" data-testid="special-considerations-label">Special Fitting Considerations</Label>
+                <Label htmlFor="specialConsiderations" className="text-text-dark font-semibold">Special Fitting Considerations</Label>
                 <Textarea
                   id="specialConsiderations"
                   data-testid="special-considerations-input"
                   value={customerInfo.special_considerations}
                   onChange={(e) => handleCustomerInfoChange('special_considerations', e.target.value)}
                   placeholder="Any special requirements or preferences..."
+                  className="measurement-input"
                   rows={3}
                 />
               </div>
@@ -338,17 +353,14 @@ const MeasurementFlow = () => {
       
       case 2:
         return (
-          <Card className="w-full max-w-2xl mx-auto">
+          <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Ruler className="h-5 w-5 text-indigo-600" />
-                <span>Measurements</span>
-              </CardTitle>
+              <CardTitle className="font-serif text-2xl text-maroon-600">Measurements</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="height" data-testid="height-label">Height (cm) *</Label>
+                  <Label htmlFor="height" className="text-text-dark font-semibold">Height (cm) *</Label>
                   <Input
                     id="height"
                     data-testid="height-input"
@@ -359,11 +371,12 @@ const MeasurementFlow = () => {
                     value={measurements.height}
                     onChange={(e) => handleMeasurementChange('height', e.target.value)}
                     placeholder="175"
+                    className="measurement-input"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="weight" data-testid="weight-label">Weight (kg) *</Label>
+                  <Label htmlFor="weight" className="text-text-dark font-semibold">Weight (kg) *</Label>
                   <Input
                     id="weight"
                     data-testid="weight-input"
@@ -374,6 +387,7 @@ const MeasurementFlow = () => {
                     value={measurements.weight}
                     onChange={(e) => handleMeasurementChange('weight', e.target.value)}
                     placeholder="70"
+                    className="measurement-input"
                     required
                   />
                 </div>
@@ -381,7 +395,7 @@ const MeasurementFlow = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="waist" data-testid="waist-label">Waist (cm)</Label>
+                  <Label htmlFor="waist" className="text-text-dark font-semibold">Waist (cm)</Label>
                   <Input
                     id="waist"
                     data-testid="waist-input"
@@ -390,10 +404,11 @@ const MeasurementFlow = () => {
                     value={measurements.waist}
                     onChange={(e) => handleMeasurementChange('waist', e.target.value)}
                     placeholder="32"
+                    className="measurement-input"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="hipSeat" data-testid="hip-seat-label">Hip/Seat (cm)</Label>
+                  <Label htmlFor="hipSeat" className="text-text-dark font-semibold">Hip/Seat (cm)</Label>
                   <Input
                     id="hipSeat"
                     data-testid="hip-seat-input"
@@ -402,13 +417,14 @@ const MeasurementFlow = () => {
                     value={measurements.hip_seat}
                     onChange={(e) => handleMeasurementChange('hip_seat', e.target.value)}
                     placeholder="36"
+                    className="measurement-input"
                   />
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="thigh" data-testid="thigh-label">Thigh (cm)</Label>
+                  <Label htmlFor="thigh" className="text-text-dark font-semibold">Thigh (cm)</Label>
                   <Input
                     id="thigh"
                     data-testid="thigh-input"
@@ -417,10 +433,11 @@ const MeasurementFlow = () => {
                     value={measurements.thigh}
                     onChange={(e) => handleMeasurementChange('thigh', e.target.value)}
                     placeholder="24"
+                    className="measurement-input"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="crothRise" data-testid="crotch-rise-label">Crotch Rise (cm)</Label>
+                  <Label htmlFor="crothRise" className="text-text-dark font-semibold">Crotch Rise (cm)</Label>
                   <Input
                     id="crothRise"
                     data-testid="crotch-rise-input"
@@ -429,13 +446,14 @@ const MeasurementFlow = () => {
                     value={measurements.crotch_rise}
                     onChange={(e) => handleMeasurementChange('crotch_rise', e.target.value)}
                     placeholder="28"
+                    className="measurement-input"
                   />
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="outseam" data-testid="outseam-label">Outseam (cm)</Label>
+                  <Label htmlFor="outseam" className="text-text-dark font-semibold">Outseam (cm)</Label>
                   <Input
                     id="outseam"
                     data-testid="outseam-input"
@@ -444,10 +462,11 @@ const MeasurementFlow = () => {
                     value={measurements.outseam}
                     onChange={(e) => handleMeasurementChange('outseam', e.target.value)}
                     placeholder="110"
+                    className="measurement-input"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="bottomOpening" data-testid="bottom-opening-label">Bottom Opening (cm)</Label>
+                  <Label htmlFor="bottomOpening" className="text-text-dark font-semibold">Bottom Opening (cm)</Label>
                   <Input
                     id="bottomOpening"
                     data-testid="bottom-opening-input"
@@ -456,6 +475,7 @@ const MeasurementFlow = () => {
                     value={measurements.bottom_opening}
                     onChange={(e) => handleMeasurementChange('bottom_opening', e.target.value)}
                     placeholder="18"
+                    className="measurement-input"
                   />
                 </div>
               </div>
@@ -465,75 +485,58 @@ const MeasurementFlow = () => {
       
       case 3:
         return (
-          <Card className="w-full max-w-2xl mx-auto">
+          <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle>Order Preferences</CardTitle>
+              <CardTitle className="font-serif text-2xl text-maroon-600">Order Preferences</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="quantity" data-testid="quantity-label">Quantity</Label>
-                <Select value={orderDetails.quantity.toString()} onValueChange={(value) => handleOrderDetailsChange('quantity', parseInt(value))}>
-                  <SelectTrigger data-testid="quantity-select">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[1,2,3,4,5].map(num => (
-                      <SelectItem key={num} value={num.toString()}>{num} trouser{num > 1 ? 's' : ''}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <CardContent className="space-y-6">
+              {productSelection && (
+                <div className="bg-cream p-4 rounded-lg border border-beige-300">
+                  <h4 className="font-semibold text-maroon-600 mb-2">Selected Product</h4>
+                  <p className="text-text-dark">Fabric: {productSelection.fabric}</p>
+                  <p className="text-text-dark">Price: ₹{productSelection.price}</p>
+                  <p className="text-text-dark">Quantity: {productSelection.quantity}</p>
+                </div>
+              )}
               
               <div>
-                <Label htmlFor="fabric" data-testid="fabric-label">Fabric Choice</Label>
-                <Select value={orderDetails.fabric_choice} onValueChange={(value) => handleOrderDetailsChange('fabric_choice', value)}>
-                  <SelectTrigger data-testid="fabric-select">
-                    <SelectValue placeholder="Select fabric type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="wool">Premium Wool</SelectItem>
-                    <SelectItem value="cotton">Cotton Blend</SelectItem>
-                    <SelectItem value="linen">Linen</SelectItem>
-                    <SelectItem value="silk">Silk Blend</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="stylePreferences" data-testid="style-preferences-label">Style Preferences</Label>
+                <Label htmlFor="stylePreferences" className="text-text-dark font-semibold">Style Preferences</Label>
                 <Textarea
                   id="stylePreferences"
                   data-testid="style-preferences-input"
                   value={orderDetails.style_preferences}
                   onChange={(e) => handleOrderDetailsChange('style_preferences', e.target.value)}
                   placeholder="Slim fit, tapered legs, flat front, etc..."
+                  className="measurement-input"
                   rows={3}
                 />
               </div>
               
               <div>
-                <Label htmlFor="notes" data-testid="notes-label">Additional Notes</Label>
+                <Label htmlFor="notes" className="text-text-dark font-semibold">Additional Notes</Label>
                 <Textarea
                   id="notes"
                   data-testid="notes-input"
                   value={orderDetails.notes}
                   onChange={(e) => handleOrderDetailsChange('notes', e.target.value)}
                   placeholder="Any special requests or instructions..."
+                  className="measurement-input"
                   rows={3}
                 />
               </div>
               
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-slate-900 mb-2">Order Summary</h3>
-                <div className="space-y-1 text-sm text-slate-600">
+              <div className="bg-stone-50 p-6 rounded-xl">
+                <h3 className="font-serif font-semibold text-maroon-600 mb-4">Order Summary</h3>
+                <div className="space-y-2 text-text-dark">
                   <div className="flex justify-between">
                     <span>Premium Tailored Trousers × {orderDetails.quantity}</span>
-                    <span>₹{(450 * orderDetails.quantity).toLocaleString()}</span>
+                    <span>₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
                   </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-semibold text-slate-900">
-                    <span>Total Amount</span>
-                    <span data-testid="total-amount">₹{(450 * orderDetails.quantity).toLocaleString()}</span>
+                  <div className="border-t pt-2 mt-3">
+                    <div className="flex justify-between font-bold text-lg">
+                      <span>Total Amount</span>
+                      <span data-testid="total-amount" className="text-accent-gold">₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -543,34 +546,31 @@ const MeasurementFlow = () => {
       
       case 4:
         return (
-          <Card className="w-full max-w-2xl mx-auto">
+          <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CreditCard className="h-5 w-5 text-green-600" />
-                <span>Payment & Confirmation</span>
-              </CardTitle>
+              <CardTitle className="font-serif text-2xl text-maroon-600">Payment & Confirmation</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
                 <h3 className="font-semibold text-green-800 mb-2">Order Submitted Successfully!</h3>
-                <p className="text-green-700 text-sm">
+                <p className="text-green-700">
                   Your measurements have been recorded. Complete payment to confirm your order.
                 </p>
                 {submissionId && (
-                  <div className="mt-2">
-                    <Badge variant="secondary" data-testid="order-id-badge">
+                  <div className="mt-3">
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium" data-testid="order-id-badge">
                       Order ID: {submissionId.slice(0, 8)}
-                    </Badge>
+                    </span>
                   </div>
                 )}
               </div>
               
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-slate-900 mb-2">Final Order Summary</h3>
-                <div className="space-y-2 text-sm">
+              <div className="bg-stone-50 p-6 rounded-xl">
+                <h3 className="font-serif font-semibold text-maroon-600 mb-4">Final Order Summary</h3>
+                <div className="space-y-3">
                   <div className="flex justify-between">
                     <span>Customer:</span>
-                    <span data-testid="customer-name">{customerInfo.first_name} {customerInfo.last_name}</span>
+                    <span data-testid="customer-name" className="font-medium">{customerInfo.first_name} {customerInfo.last_name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Email:</span>
@@ -590,10 +590,11 @@ const MeasurementFlow = () => {
                       <span data-testid="fabric-choice">{orderDetails.fabric_choice}</span>
                     </div>
                   )}
-                  <Separator className="my-2" />
-                  <div className="flex justify-between font-semibold text-lg">
-                    <span>Total:</span>
-                    <span data-testid="final-total">₹{(450 * orderDetails.quantity).toLocaleString()}</span>
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex justify-between font-bold text-xl">
+                      <span>Total:</span>
+                      <span data-testid="final-total" className="text-accent-gold">₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -603,13 +604,13 @@ const MeasurementFlow = () => {
                   data-testid="pay-now-btn"
                   onClick={initiatePayment}
                   disabled={isLoading}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-3 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="btn-primary px-8 py-4 text-lg"
                   size="lg"
                 >
                   {isLoading ? 'Processing...' : 'Pay Now'}
                 </Button>
                 
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-xs text-text-light mt-3">
                   Secure payment powered by Razorpay
                 </p>
               </div>
@@ -623,57 +624,53 @@ const MeasurementFlow = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-cream">
       {/* Navigation */}
-      <nav className="backdrop-blur-sm bg-white/70 border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button 
+      <nav className="bg-white/95 backdrop-blur-md border-b border-beige-200">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/')}
+                className="mr-4 p-2 hover:bg-stone-100 rounded-full transition-colors"
                 data-testid="back-home-btn"
-                variant="ghost" 
-                onClick={() => navigate('/')} 
-                className="flex items-center space-x-2 text-slate-600 hover:text-slate-900"
               >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Home</span>
-              </Button>
-              
-              <div className="flex items-center space-x-2">
-                <Scissors className="h-8 w-8 text-indigo-600" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                  Stallion & Co.
-                </span>
-              </div>
+                <svg className="w-6 h-6 text-maroon-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-maroon-600">
+                Stallion & Co.
+              </h1>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Progress Steps */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4">
             {[1, 2, 3, 4].map((step) => (
               <React.Fragment key={step}>
                 <div className={`
-                  w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
+                  w-12 h-12 rounded-full flex items-center justify-center font-serif font-bold
                   transition-all duration-300
                   ${
                     currentStep >= step
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-slate-200 text-slate-500'
+                      ? 'bg-maroon-600 text-white'
+                      : 'bg-stone-200 text-stone-500'
                   }
                 `} data-testid={`step-${step}-indicator`}>
                   {step}
                 </div>
                 {step < 4 && (
                   <div className={`
-                    w-16 h-1 transition-all duration-300
+                    w-16 h-2 transition-all duration-300 rounded-full
                     ${
                       currentStep > step
-                        ? 'bg-indigo-600'
-                        : 'bg-slate-200'
+                        ? 'bg-maroon-600'
+                        : 'bg-stone-200'
                     }
                   `} />
                 )}
@@ -683,13 +680,13 @@ const MeasurementFlow = () => {
         </div>
         
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2" data-testid="step-title">
+          <h1 className="font-serif text-4xl font-bold text-maroon-600 mb-3" data-testid="step-title">
             {currentStep === 1 && 'Personal Information'}
             {currentStep === 2 && 'Measurements'}
             {currentStep === 3 && 'Order Preferences'}
             {currentStep === 4 && 'Payment & Confirmation'}
           </h1>
-          <p className="text-slate-600">
+          <p className="text-xl text-text-light">
             {currentStep === 1 && 'Tell us about yourself'}
             {currentStep === 2 && 'Provide your precise measurements'}
             {currentStep === 3 && 'Customize your order'}
@@ -704,10 +701,9 @@ const MeasurementFlow = () => {
           <div className="flex justify-between mt-8 max-w-2xl mx-auto">
             <Button
               data-testid="prev-step-btn"
-              variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="px-6 py-2"
+              className="btn-secondary px-6 py-3"
             >
               Previous
             </Button>
@@ -717,7 +713,7 @@ const MeasurementFlow = () => {
                 data-testid="submit-order-btn"
                 onClick={submitOrder}
                 disabled={isLoading}
-                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2"
+                className="btn-primary px-6 py-3"
               >
                 {isLoading ? 'Submitting...' : 'Submit Order'}
               </Button>
@@ -725,7 +721,7 @@ const MeasurementFlow = () => {
               <Button
                 data-testid="next-step-btn"
                 onClick={nextStep}
-                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-6 py-2"
+                className="btn-primary px-6 py-3"
               >
                 Next Step
               </Button>
@@ -733,9 +729,6 @@ const MeasurementFlow = () => {
           </div>
         )}
       </div>
-      
-      {/* Razorpay Script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     </div>
   );
 };
