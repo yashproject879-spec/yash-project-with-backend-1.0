@@ -102,7 +102,7 @@ class SheetsService:
                 # Order Details
                 f"₹{total_amount}",  # Total Amount
                 'INR',  # Currency
-                order_data.get('created_at', datetime.now().isoformat()),  # Created Date
+                str(order_data.get('created_at', datetime.now().isoformat())),  # Created Date
                 datetime.now().isoformat()  # Updated Date
             ]
             
