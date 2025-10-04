@@ -720,7 +720,7 @@ const MeasurementFlow = () => {
                 `} data-testid={`step-${step}-indicator`}>
                   {step}
                 </div>
-                {step < 4 && (
+                {step < 5 && (
                   <div className={`
                     w-16 h-2 transition-all duration-300 rounded-full
                     ${
