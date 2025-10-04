@@ -99,28 +99,24 @@ const VirtualFitting = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-cream">
       {/* Navigation */}
-      <nav className="backdrop-blur-sm bg-white/70 border-b border-white/20 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Button 
+      <nav className="bg-white/95 backdrop-blur-md border-b border-beige-200">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center">
+              <button
+                onClick={() => navigate('/')}
+                className="mr-4 p-2 hover:bg-stone-100 rounded-full transition-colors"
                 data-testid="back-home-btn"
-                variant="ghost" 
-                onClick={() => navigate('/')} 
-                className="flex items-center space-x-2 text-slate-600 hover:text-slate-900"
               >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Home</span>
-              </Button>
-              
-              <div className="flex items-center space-x-2">
-                <Scissors className="h-8 w-8 text-indigo-600" />
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                  Stallion & Co.
-                </span>
-              </div>
+                <svg className="w-6 h-6 text-maroon-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-maroon-600">
+                Stallion & Co.
+              </h1>
             </div>
           </div>
         </div>
