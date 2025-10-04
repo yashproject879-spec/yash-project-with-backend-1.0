@@ -21,11 +21,12 @@ class GmailService:
         
         if not self.enabled:
             logger.warning("Gmail credentials not fully configured. Email functionality will be disabled.")
-            logger.info(f"Missing credentials: {[name for name, val in [
+            missing_creds = [name for name, val in [
                 ('GMAIL_CLIENT_ID', self.client_id),
                 ('GMAIL_CLIENT_SECRET', self.client_secret),
                 ('GMAIL_REFRESH_TOKEN', self.refresh_token)
-            ] if not val}]")
+            ] if not val]
+            logger.info(f"Missing credentials: {missing_creds}")
     
     def _get_credentials(self):
         """Get authenticated Gmail credentials"""
