@@ -131,7 +131,7 @@ const MeasurementFlow = () => {
         toast.error('Please fill in all required customer information fields');
         return false;
       }
-      const emailRegex = /^[^@]+@[^@]+\\.[^@]+$/;
+      const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
       if (!emailRegex.test(customerInfo.email)) {
         toast.error('Please enter a valid email address');
         return false;
