@@ -13,31 +13,16 @@ logger = logging.getLogger(__name__)
 
 class GmailService:
     def __init__(self):
-        # Try service account first, then OAuth
-        self.service_account_path = os.getenv('GOOGLE_SERVICE_ACCOUNT_PATH')
         self.client_id = os.getenv('GMAIL_CLIENT_ID')
         self.client_secret = os.getenv('GMAIL_CLIENT_SECRET')
         self.redirect_uri = os.getenv('GMAIL_REDIRECT_URI')
         self.refresh_token = os.getenv('GMAIL_REFRESH_TOKEN')
+        self.enabled = all([self.client_id, self.client_secret, self.refresh_token])
         
-        # Check if we have service account
-        self.use_service_account = self.service_account_path and os.path.exists(self.service_account_path)
-        
-        if self.use_service_account:
-            self.enabled = True
-            logger.info("Gmail service initialized with service account")
+        if not self.enabled:
+            logger.warning("Gmail OAuth credentials not configured. Email functionality will be mocked.")
         else:
-            # Check OAuth credentials
-            self.enabled = all([self.client_id, self.client_secret, self.refresh_token])
-            
-            if not self.enabled:
-                logger.warning("Gmail credentials not fully configured. Email functionality will be disabled.")
-                missing_creds = [name for name, val in [
-                    ('GMAIL_CLIENT_ID', self.client_id),
-                    ('GMAIL_CLIENT_SECRET', self.client_secret),
-                    ('GMAIL_REFRESH_TOKEN', self.refresh_token)
-                ] if not val]
-                logger.info(f"Missing credentials: {missing_creds}")
+            logger.info("Gmail service enabled with OAuth credentials")
     
     def _get_credentials(self):
         """Get authenticated Gmail credentials"""
