@@ -543,6 +543,174 @@ const MeasurementFlow = () => {
         return (
           <Card className="luxury-card w-full max-w-2xl mx-auto">
             <CardHeader>
+              <CardTitle className="font-serif text-2xl text-maroon-600">Photo Upload</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="bg-cream p-4 rounded-lg border border-beige-300">
+                <h4 className="font-semibold text-maroon-600 mb-2">📸 Help Us Create Your Perfect Fit</h4>
+                <p className="text-text-dark text-sm">
+                  Upload photos to help our tailors understand your body type and preferred fit. All photos are secure and will be used only for tailoring purposes.
+                </p>
+              </div>
+
+              {/* Front View Photo */}
+              <div className="space-y-2">
+                <Label className="text-text-dark font-semibold">Front View Photo (Recommended)</Label>
+                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
+                  {uploadedImages.front_view ? (
+                    <div className="space-y-2">
+                      <img 
+                        src={uploadedImages.front_view} 
+                        alt="Front view" 
+                        className="w-24 h-32 object-cover mx-auto rounded-lg"
+                      />
+                      <p className="text-green-600 text-sm">✅ Front view uploaded</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('front-view-input').click()}
+                        className="text-xs"
+                      >
+                        Replace Photo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
+                        <span className="text-2xl">📸</span>
+                      </div>
+                      <p className="text-text-light">Stand straight, arms at sides</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('front-view-input').click()}
+                      >
+                        Upload Front View
+                      </Button>
+                    </div>
+                  )}
+                  <input
+                    id="front-view-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageChange('front_view', e.target.files[0])}
+                  />
+                </div>
+              </div>
+
+              {/* Side View Photo */}
+              <div className="space-y-2">
+                <Label className="text-text-dark font-semibold">Side View Photo (Recommended)</Label>
+                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
+                  {uploadedImages.side_view ? (
+                    <div className="space-y-2">
+                      <img 
+                        src={uploadedImages.side_view} 
+                        alt="Side view" 
+                        className="w-24 h-32 object-cover mx-auto rounded-lg"
+                      />
+                      <p className="text-green-600 text-sm">✅ Side view uploaded</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('side-view-input').click()}
+                        className="text-xs"
+                      >
+                        Replace Photo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
+                        <span className="text-2xl">📸</span>
+                      </div>
+                      <p className="text-text-light">Profile view, natural stance</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('side-view-input').click()}
+                      >
+                        Upload Side View
+                      </Button>
+                    </div>
+                  )}
+                  <input
+                    id="side-view-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageChange('side_view', e.target.files[0])}
+                  />
+                </div>
+              </div>
+
+              {/* Reference Fit Photo */}
+              <div className="space-y-2">
+                <Label className="text-text-dark font-semibold">Reference Fit Photo (Optional)</Label>
+                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
+                  {uploadedImages.reference_fit ? (
+                    <div className="space-y-2">
+                      <img 
+                        src={uploadedImages.reference_fit} 
+                        alt="Reference fit" 
+                        className="w-24 h-32 object-cover mx-auto rounded-lg"
+                      />
+                      <p className="text-green-600 text-sm">✅ Reference fit uploaded</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('reference-fit-input').click()}
+                        className="text-xs"
+                      >
+                        Replace Photo
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
+                        <span className="text-2xl">👕</span>
+                      </div>
+                      <p className="text-text-light">Photo of a garment you love the fit of</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('reference-fit-input').click()}
+                      >
+                        Upload Reference
+                      </Button>
+                    </div>
+                  )}
+                  <input
+                    id="reference-fit-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleImageChange('reference_fit', e.target.files[0])}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-stone-50 p-4 rounded-lg text-sm text-text-light">
+                <p className="mb-2"><strong>Photography Tips:</strong></p>
+                <ul className="space-y-1 text-xs">
+                  <li>• Good lighting (natural light works best)</li>
+                  <li>• Wear well-fitted clothing</li>
+                  <li>• Stand 6-8 feet from the camera</li>
+                  <li>• Keep arms relaxed at your sides</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      
+      case 4:
+        return (
+          <Card className="luxury-card w-full max-w-2xl mx-auto">
+            <CardHeader>
               <CardTitle className="font-serif text-2xl text-maroon-600">Order Preferences</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
