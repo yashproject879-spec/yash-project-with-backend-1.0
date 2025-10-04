@@ -707,7 +707,7 @@ const MeasurementFlow = () => {
       <div className="max-w-4xl mx-auto px-6 py-8">
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3, 4, 5].map((step) => (
               <React.Fragment key={step}>
                 <div className={`
                   w-12 h-12 rounded-full flex items-center justify-center font-serif font-bold
