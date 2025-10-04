@@ -40,6 +40,10 @@ class GmailService:
     
     async def send_email(self, to_email: str, subject: str, body: str, is_html: bool = False) -> bool:
         """Send email using Gmail API"""
+        if not self.enabled:
+            logger.warning(f"Gmail not configured. Would send email to {to_email} with subject: {subject}")
+            return True  # Return True for development/testing
+            
         try:
             creds = self._get_credentials()
             service = build('gmail', 'v1', credentials=creds)
