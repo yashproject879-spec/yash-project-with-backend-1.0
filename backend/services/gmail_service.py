@@ -17,9 +17,15 @@ class GmailService:
         self.client_secret = os.getenv('GMAIL_CLIENT_SECRET')
         self.redirect_uri = os.getenv('GMAIL_REDIRECT_URI')
         self.refresh_token = os.getenv('GMAIL_REFRESH_TOKEN')
+        self.enabled = all([self.client_id, self.client_secret, self.refresh_token])
         
-        if not all([self.client_id, self.client_secret, self.refresh_token]):
-            raise ValueError("Gmail credentials not properly configured")
+        if not self.enabled:
+            logger.warning("Gmail credentials not fully configured. Email functionality will be disabled.")
+            logger.info(f"Missing credentials: {[name for name, val in [
+                ('GMAIL_CLIENT_ID', self.client_id),
+                ('GMAIL_CLIENT_SECRET', self.client_secret),
+                ('GMAIL_REFRESH_TOKEN', self.refresh_token)
+            ] if not val}]")
     
     def _get_credentials(self):
         """Get authenticated Gmail credentials"""
