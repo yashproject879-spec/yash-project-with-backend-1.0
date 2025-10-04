@@ -48,6 +48,18 @@ const MeasurementFlow = () => {
     quantity: 1
   });
 
+  const [images, setImages] = useState({
+    front_view: null,
+    side_view: null,
+    reference_fit: null
+  });
+
+  const [uploadedImages, setUploadedImages] = useState({
+    front_view: '',
+    side_view: '',
+    reference_fit: ''
+  });
+
   useEffect(() => {
     // Load product selection from sessionStorage
     const stored = sessionStorage.getItem('productSelection');
