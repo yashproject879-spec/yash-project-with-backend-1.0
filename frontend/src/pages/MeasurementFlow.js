@@ -191,7 +191,12 @@ const MeasurementFlow = () => {
         fabric_choice: orderDetails.fabric_choice,
         style_preferences: orderDetails.style_preferences,
         notes: orderDetails.notes,
-        quantity: orderDetails.quantity
+        quantity: orderDetails.quantity,
+        images: {
+          front_view: uploadedImages.front_view,
+          side_view: uploadedImages.side_view,
+          reference_fit: uploadedImages.reference_fit
+        }
       };
       
       const response = await axios.post(
