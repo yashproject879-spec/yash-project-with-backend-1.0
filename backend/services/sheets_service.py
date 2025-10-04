@@ -34,9 +34,13 @@ class SheetsService:
     async def push_order_data(self, order_data: Dict[str, Any], payment_id: str) -> bool:
         """Push order data to Google Sheets"""
         try:
-            if not self.client or not self.sheet_id or self.sheet_id == 'your_sheet_id_here':
-                logger.warning(f"Google Sheets not configured. Would push order data for order {order_data['id']}")
-                return True  # Return True for development/testing
+            if not self.client:
+                logger.error("Google Sheets client not initialized")
+                return False
+                
+            if not self.sheet_id or self.sheet_id == 'your_sheet_id_here':
+                logger.error("Google Sheet ID not configured")
+                return False
             
             # Open the spreadsheet
             sheet = self.client.open_by_key(self.sheet_id)
