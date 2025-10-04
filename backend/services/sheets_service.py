@@ -102,8 +102,8 @@ class SheetsService:
                 # Order Details
                 f"₹{total_amount}",  # Total Amount
                 'INR',  # Currency
-                str(order_data.get('created_at', datetime.now().isoformat())),  # Created Date
-                datetime.now().isoformat()  # Updated Date
+                str(order_data.get('created_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))),  # Created Date
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Updated Date
             ]
             
             # Append the row to the sheet
