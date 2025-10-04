@@ -235,8 +235,41 @@ const MeasurementFlow = () => {
         }
       );
       
-      const { order_id, amount, currency, key } = orderResponse.data;
+      const { order_id, amount, currency, key, is_mock } = orderResponse.data;
       
+      // Check if this is a mock payment (for testing)
+      if (is_mock || key === 'rzp_test_mock') {
+        // Handle mock payment for testing
+        toast.info('Test mode - Simulating payment success');
+        
+        try {
+          // Simulate successful payment with mock data
+          const mockVerifyResponse = await axios.post(
+            `${process.env.REACT_APP_BACKEND_URL}/api/verify-payment`,
+            {
+              razorpay_order_id: order_id,
+              razorpay_payment_id: `pay_mock_${Date.now()}`,
+              razorpay_signature: 'mock_signature_for_testing',
+              submission_id: submissionId
+            }
+          );
+          
+          if (mockVerifyResponse.data.status === 'success') {
+            toast.success('🎉 Test payment successful! Order confirmed.');
+            setTimeout(() => {
+              navigate('/');
+            }, 2000);
+          }
+          
+        } catch (verifyError) {
+          console.error('Mock payment verification error:', verifyError);
+          toast.error('Test payment verification failed.');
+        }
+        
+        return; // Exit early for mock payments
+      }
+      
+      // Real Razorpay integration
       const options = {
         key: key,
         amount: amount,
