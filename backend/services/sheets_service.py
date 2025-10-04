@@ -116,9 +116,9 @@ class SheetsService:
                 order_data['measurements'].get('unit', 'cm'),  # Measurement Unit
                 
                 # Customer Images
-                order_data.get('front_view_photo', ''),  # Front View Photo
-                order_data.get('side_view_photo', ''),  # Side View Photo
-                order_data.get('reference_fit_photo', ''),  # Reference Fit Photo
+                order_data.get('images', {}).get('front_view', '') if order_data.get('images') else '',  # Front View Photo
+                order_data.get('images', {}).get('side_view', '') if order_data.get('images') else '',  # Side View Photo
+                order_data.get('images', {}).get('reference_fit', '') if order_data.get('images') else '',  # Reference Fit Photo
                 
                 # Order Details
                 f"₹{total_amount}",  # Total Amount
