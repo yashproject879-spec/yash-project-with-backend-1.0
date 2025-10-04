@@ -73,7 +73,7 @@ class MeasurementData(BaseModel):
     outseam: Optional[float] = Field(None, ge=50, le=150, description="Outseam length")
     waist: Optional[float] = Field(None, ge=20, le=150, description="Waist measurement") 
     hip_seat: Optional[float] = Field(None, ge=20, le=180, description="Hip/Seat measurement")
-    thigh: Optional[float] = Field(None, ge=30, le=100, description="Thigh measurement")
+    thigh: Optional[float] = Field(None, ge=15, le=100, description="Thigh measurement")
     crotch_rise: Optional[float] = Field(None, ge=15, le=50, description="Crotch/Rise measurement")
     bottom_opening: Optional[float] = Field(None, ge=10, le=40, description="Bottom opening/Hem")
     unit: MeasurementUnit = Field(default=MeasurementUnit.CENTIMETERS)
