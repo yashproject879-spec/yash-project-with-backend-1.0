@@ -923,7 +923,7 @@ const MeasurementFlow = () => {
         {renderStepContent()}
 
         {/* Navigation Buttons */}
-        {currentStep < 4 && (
+        {currentStep < 5 && (
           <div className="flex justify-between mt-8 max-w-2xl mx-auto">
             <Button
               data-testid="prev-step-btn"
@@ -934,7 +934,7 @@ const MeasurementFlow = () => {
               Previous
             </Button>
             
-            {currentStep === 3 ? (
+            {currentStep === 4 ? (
               <Button
                 data-testid="submit-order-btn"
                 onClick={submitOrder}
