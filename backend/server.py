@@ -25,6 +25,15 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Razorpay configuration
+razorpay_client = razorpay.Client(auth=(
+    os.environ.get('RAZORPAY_KEY_ID'),
+    os.environ.get('RAZORPAY_KEY_SECRET')
+))
+
+# Business configuration
+BASE_PRICE_PAISE = int(os.environ.get('BASE_PRICE_PAISE', '45000'))  # Default ₹450
+
 # Create the main app
 app = FastAPI(title="Stallion & Co. Luxury Tailoring API")
 
