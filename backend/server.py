@@ -84,6 +84,11 @@ class MeasurementData(BaseModel):
             raise ValueError('Measurements must be positive numbers')
         return v
 
+class ImageUpload(BaseModel):
+    front_view: Optional[str] = Field(None, description="Front view photo URL")
+    side_view: Optional[str] = Field(None, description="Side view photo URL")
+    reference_fit: Optional[str] = Field(None, description="Reference fit photo URL")
+
 class TailoringSubmission(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     customer_info: CustomerInfo
@@ -93,11 +98,13 @@ class TailoringSubmission(BaseModel):
     style_preferences: Optional[str] = Field(None, description="Style preferences")
     notes: Optional[str] = Field(None, max_length=500, description="Additional notes")
     quantity: int = Field(default=1, ge=1, le=10, description="Number of items")
+    images: Optional[ImageUpload] = Field(None, description="Customer photos")
     session_id: Optional[str] = Field(None, description="Session tracking ID")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     order_status: str = Field(default="pending_payment")
     payment_id: Optional[str] = Field(None, description="Razorpay payment ID")
     razorpay_order_id: Optional[str] = Field(None, description="Razorpay order ID")
+    total_amount: Optional[int] = Field(None, description="Total amount in paise")
     
     class Config:
         json_encoders = {
