@@ -35,6 +35,10 @@ razorpay_client = razorpay.Client(auth=(
 # Business configuration
 BASE_PRICE_PAISE = int(os.environ.get('BASE_PRICE_PAISE', '45000'))  # Default ₹450
 
+# Create uploads directory
+UPLOAD_DIR = Path("uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
 # Create the main app
 app = FastAPI(title="Stallion & Co. Luxury Tailoring API")
 
