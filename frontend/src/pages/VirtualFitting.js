@@ -99,22 +99,22 @@ const VirtualFitting = () => {
   };
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-[#F5F5DC]">
       {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-md border-b border-beige-200">
+      <nav className="header-nav">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
               <button
                 onClick={() => navigate('/')}
-                className="mr-4 p-2 hover:bg-stone-100 rounded-full transition-colors"
+                className="mr-4 p-2 hover:bg-[#F5F5DC] hover:bg-opacity-10 rounded-full transition-colors"
                 data-testid="back-home-btn"
               >
-                <svg className="w-6 h-6 text-maroon-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-[#F5F5DC]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-maroon-600">
+              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-[#F5F5DC]">
                 Stallion & Co.
               </h1>
             </div>
