@@ -61,20 +61,19 @@ const HomePage = () => {
 
       {/* Section 1: Hero Banner */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        {/* Video Background Placeholder */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#141F40] via-[#2a3a5a] to-[#141F40]">
-          {/* Video overlay gradient */}
+        {/* Video Background */}
+        <div className="absolute inset-0">
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          >
+            <source src="https://ik.imagekit.io/wr1enblrm/WhatsApp%20Video%202025-10-02%20at%2012.24.17_588f0061.mp4?updatedAt=1759670673397" type="video/mp4" />
+          </video>
+          {/* Overlay for cinematic depth */}
           <div className="absolute inset-0 bg-[#141F40] bg-opacity-40"></div>
-          
-          {/* Placeholder for horse video - replace with actual video */}
-          <div className="absolute inset-0 flex items-center justify-center text-[#F5F5DC] opacity-20">
-            <div className="text-center">
-              <div className="w-32 h-32 border-2 border-[#F5F5DC] rounded-full flex items-center justify-center mb-4 mx-auto">
-                <span className="text-4xl">🏇</span>
-              </div>
-              <p className="text-sm">Video Background Placeholder</p>
-            </div>
-          </div>
         </div>
 
         {/* Hero Content */}
@@ -110,16 +109,13 @@ const HomePage = () => {
             
             {/* Left: Product Image */}
             <div className="relative">
-              <div className="aspect-[4/5] bg-gradient-to-br from-[#141F40] to-[#2a3a5a] rounded-lg overflow-hidden shadow-2xl">
-                {/* Placeholder for product image */}
-                <div className="absolute inset-0 flex items-center justify-center text-[#F5F5DC]">
-                  <div className="text-center">
-                    <div className="w-24 h-32 border-2 border-[#F5F5DC] rounded-lg flex items-center justify-center mb-4 mx-auto">
-                      <span className="text-3xl">👔</span>
-                    </div>
-                    <p className="text-sm opacity-70">Product Image Placeholder</p>
-                  </div>
-                </div>
+             <div className="aspect-[4/5] bg-[#F5F5DC] rounded-lg overflow-hidden shadow-2xl flex items-center justify-center">
+                {/* Product Image */}
+                <img
+                  src="https://ik.imagekit.io/wr1enblrm/image.png?updatedAt=1759673340657"
+                  alt="Bespoke Trousers"
+                  className="w-full h-full object-contain"
+                />
               </div>
             </div>
             
@@ -254,3 +250,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
