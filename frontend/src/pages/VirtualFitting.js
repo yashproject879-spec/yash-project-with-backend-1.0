@@ -124,15 +124,15 @@ const VirtualFitting = () => {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-maroon-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 bg-[#6E0A13] rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-[#F5F5DC]" fill="currentColor" viewBox="0 0 24 24">
               <path d="M15.75 6.75L12 3l-3.75 3.75L12 10.5l3.75-3.75zM12 21l-3.75-3.75L12 13.5l3.75 3.75L12 21z"/>
             </svg>
           </div>
-          <h1 className="font-serif text-4xl font-bold text-maroon-600 mb-3" data-testid="page-title">
+          <h1 className="section-heading" data-testid="page-title">
             Virtual Fitting Consultation
           </h1>
-          <p className="text-xl text-text-light max-w-2xl mx-auto">
+          <p className="body-text max-w-2xl mx-auto">
             Schedule a one-on-one virtual consultation with our master tailors to discuss your requirements and preferences.
           </p>
         </div>
