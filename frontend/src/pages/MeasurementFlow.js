@@ -8,6 +8,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { ArrowLeft, ChevronRight, ChevronLeft } from 'lucide-react';
 
 const MeasurementFlow = () => {
   const navigate = useNavigate();
@@ -15,30 +16,27 @@ const MeasurementFlow = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submissionId, setSubmissionId] = useState(null);
   
-  // Get product selection from sessionStorage
-  const [productSelection, setProductSelection] = useState(null);
+  // Form state for 7-step process
+  const [measurements, setMeasurements] = useState({
+    outseam: '', // Step 1: Length
+    waist: '',   // Step 2: Waist 
+    hip_seat: '', // Step 3: Hip/Seat
+    thigh: '',    // Step 4: Thigh
+    crotch_rise: '', // Step 5: Crotch/Rise
+    bottom_opening: '', // Step 6: Bottom Opening
+    unit: 'cm'
+  });
   
-  // Form state
   const [customerInfo, setCustomerInfo] = useState({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
     age: '',
-    body_type: '',
-    special_considerations: ''
-  });
-  
-  const [measurements, setMeasurements] = useState({
     height: '',
     weight: '',
-    waist: '',
-    hip_seat: '',
-    thigh: '',
-    crotch_rise: '',
-    outseam: '',
-    bottom_opening: '',
-    unit: 'cm'
+    body_type: '',
+    special_considerations: ''
   });
   
   const [orderDetails, setOrderDetails] = useState({
@@ -48,12 +46,6 @@ const MeasurementFlow = () => {
     quantity: 1
   });
 
-  const [images, setImages] = useState({
-    front_view: null,
-    side_view: null,
-    reference_fit: null
-  });
-
   const [uploadedImages, setUploadedImages] = useState({
     front_view: '',
     side_view: '',
@@ -61,11 +53,9 @@ const MeasurementFlow = () => {
   });
 
   useEffect(() => {
-    // Load product selection from sessionStorage
     const stored = sessionStorage.getItem('productSelection');
     if (stored) {
       const selection = JSON.parse(stored);
-      setProductSelection(selection);
       setOrderDetails(prev => ({ 
         ...prev, 
         fabric_choice: selection.fabric || '',
@@ -74,16 +64,12 @@ const MeasurementFlow = () => {
     }
   }, []);
 
-  const handleCustomerInfoChange = (field, value) => {
-    setCustomerInfo(prev => ({ ...prev, [field]: value }));
-  };
-
   const handleMeasurementChange = (field, value) => {
     setMeasurements(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleOrderDetailsChange = (field, value) => {
-    setOrderDetails(prev => ({ ...prev, [field]: value }));
+  const handleCustomerInfoChange = (field, value) => {
+    setCustomerInfo(prev => ({ ...prev, [field]: value }));
   };
 
   const handleImageUpload = async (file, imageType) => {
@@ -118,17 +104,10 @@ const MeasurementFlow = () => {
     }
   };
 
-  const handleImageChange = (imageType, file) => {
-    setImages(prev => ({ ...prev, [imageType]: file }));
-    if (file) {
-      handleImageUpload(file, imageType);
-    }
-  };
-
   const validateStep = (step) => {
-    if (step === 1) {
+    if (step === 7) {
       if (!customerInfo.first_name || !customerInfo.last_name || !customerInfo.email) {
-        toast.error('Please fill in all required customer information fields');
+        toast.error('Please fill in all required personal information');
         return false;
       }
       const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
@@ -137,28 +116,12 @@ const MeasurementFlow = () => {
         return false;
       }
     }
-    
-    if (step === 2) {
-      if (!measurements.height || !measurements.weight) {
-        toast.error('Height and weight are required measurements');
-        return false;
-      }
-      if (parseFloat(measurements.height) < 100 || parseFloat(measurements.height) > 250) {
-        toast.error('Height must be between 100-250 cm');
-        return false;
-      }
-      if (parseFloat(measurements.weight) < 30 || parseFloat(measurements.weight) > 300) {
-        toast.error('Weight must be between 30-300 kg');
-        return false;
-      }
-    }
-    
     return true;
   };
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 5));
+      setCurrentStep(prev => Math.min(prev + 1, 8));
     }
   };
 
@@ -167,7 +130,7 @@ const MeasurementFlow = () => {
   };
 
   const submitOrder = async () => {
-    if (!validateStep(2)) return;
+    if (!validateStep(7)) return;
     
     setIsLoading(true);
     
@@ -175,18 +138,20 @@ const MeasurementFlow = () => {
       const submissionData = {
         customer_info: {
           ...customerInfo,
-          age: customerInfo.age ? parseInt(customerInfo.age) : null
+          age: customerInfo.age ? parseInt(customerInfo.age) : null,
+          height: customerInfo.height ? parseFloat(customerInfo.height) : null,
+          weight: customerInfo.weight ? parseFloat(customerInfo.weight) : null
         },
         measurements: {
-          ...measurements,
-          height: parseFloat(measurements.height),
-          weight: parseFloat(measurements.weight),
+          height: customerInfo.height ? parseFloat(customerInfo.height) : 175,
+          weight: customerInfo.weight ? parseFloat(customerInfo.weight) : 70,
           waist: measurements.waist ? parseFloat(measurements.waist) : null,
           hip_seat: measurements.hip_seat ? parseFloat(measurements.hip_seat) : null,
           thigh: measurements.thigh ? parseFloat(measurements.thigh) : null,
           crotch_rise: measurements.crotch_rise ? parseFloat(measurements.crotch_rise) : null,
           outseam: measurements.outseam ? parseFloat(measurements.outseam) : null,
-          bottom_opening: measurements.bottom_opening ? parseFloat(measurements.bottom_opening) : null
+          bottom_opening: measurements.bottom_opening ? parseFloat(measurements.bottom_opening) : null,
+          unit: measurements.unit
         },
         fabric_choice: orderDetails.fabric_choice,
         style_preferences: orderDetails.style_preferences,
@@ -206,7 +171,7 @@ const MeasurementFlow = () => {
       
       if (response.data.status === 'success') {
         setSubmissionId(response.data.submission_id);
-        setCurrentStep(5);
+        setCurrentStep(8);
         toast.success('Measurements submitted successfully!');
       }
       
@@ -239,11 +204,9 @@ const MeasurementFlow = () => {
       
       // Check if this is a mock payment (for testing)
       if (is_mock || key === 'rzp_test_mock') {
-        // Handle mock payment for testing
         toast.info('Test mode - Simulating payment success');
         
         try {
-          // Simulate successful payment with mock data
           const mockVerifyResponse = await axios.post(
             `${process.env.REACT_APP_BACKEND_URL}/api/verify-payment`,
             {
@@ -260,13 +223,11 @@ const MeasurementFlow = () => {
               navigate('/');
             }, 2000);
           }
-          
         } catch (verifyError) {
           console.error('Mock payment verification error:', verifyError);
           toast.error('Test payment verification failed.');
         }
-        
-        return; // Exit early for mock payments
+        return;
       }
       
       // Real Razorpay integration
@@ -275,7 +236,7 @@ const MeasurementFlow = () => {
         amount: amount,
         currency: currency,
         name: 'Stallion & Co.',
-        description: 'Premium Tailored Trousers',
+        description: 'Bespoke Trousers',
         order_id: order_id,
         handler: async function (response) {
           try {
@@ -295,7 +256,6 @@ const MeasurementFlow = () => {
                 navigate('/');
               }, 2000);
             }
-            
           } catch (verifyError) {
             console.error('Payment verification error:', verifyError);
             toast.error('Payment verification failed. Please contact support.');
@@ -307,7 +267,7 @@ const MeasurementFlow = () => {
           contact: customerInfo.phone
         },
         theme: {
-          color: '#7f1d1d'
+          color: '#6E0A13'
         },
         modal: {
           ondismiss: function() {
@@ -331,633 +291,653 @@ const MeasurementFlow = () => {
     }
   };
 
+  const stepTitles = {
+    1: 'Length (Outseam)',
+    2: 'Waist (Trouser Waistband)', 
+    3: 'Hip / Seat',
+    4: 'Thigh',
+    5: 'Crotch / Rise (Front Rise)',
+    6: 'Bottom Opening / Hem Circumference',
+    7: 'Client Details & Lifestyle Info',
+    8: 'Payment & Confirmation'
+  };
+
+  const expertTips = {
+    1: "Measure from your waist to where you want the trouser to end. This determines the overall length of your trousers.",
+    2: "Measure around your natural waistline where you prefer to wear your trousers. This should be comfortable, not tight.",
+    3: "Measure around the fullest part of your hips and seat area. This ensures proper room through the hip area.",
+    4: "Measure around the fullest part of your thigh. This measurement affects comfort when sitting and walking.", 
+    5: "This determines how high or low the trouser sits. Measure from the waistband to the crotch seam.",
+    6: "Measure the circumference where you want the trouser leg to end. This affects the overall silhouette.",
+    7: "Help us understand your lifestyle and preferences for the perfect fit and style recommendations."
+  };
+
   const renderStepContent = () => {
+    const commonInputClass = "w-full p-3 border-2 border-[#141F40] rounded-lg focus:border-[#6E0A13] focus:ring-2 focus:ring-[#6E0A13] focus:ring-opacity-20";
+    
     switch (currentStep) {
-      case 1:
+      case 1: // Length (Outseam)
         return (
-          <Card className="luxury-card w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="font-serif text-2xl text-maroon-600">Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName" className="text-text-dark font-semibold">First Name *</Label>
-                  <Input
-                    id="firstName"
-                    data-testid="first-name-input"
-                    value={customerInfo.first_name}
-                    onChange={(e) => handleCustomerInfoChange('first_name', e.target.value)}
-                    placeholder="Enter your first name"
-                    className="measurement-input"
-                    required
-                  />
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
                 </div>
-                <div>
-                  <Label htmlFor="lastName" className="text-text-dark font-semibold">Last Name *</Label>
-                  <Input
-                    id="lastName"
-                    data-testid="last-name-input"
-                    value={customerInfo.last_name}
-                    onChange={(e) => handleCustomerInfoChange('last_name', e.target.value)}
-                    placeholder="Enter your last name"
-                    className="measurement-input"
-                    required
-                  />
-                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
               </div>
-              
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[#000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Length (Outseam) - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.outseam}
+                onChange={(e) => handleMeasurementChange('outseam', e.target.value)}
+                placeholder="Enter length in cm (e.g., 110)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 2: // Waist
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
+                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[#000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Waist (Trouser Waistband) - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.waist}
+                onChange={(e) => handleMeasurementChange('waist', e.target.value)}
+                placeholder="Enter waist measurement in cm (e.g., 32)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 3: // Hip/Seat
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
+                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[#000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Hip / Seat - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.hip_seat}
+                onChange={(e) => handleMeasurementChange('hip_seat', e.target.value)}
+                placeholder="Enter hip/seat measurement in cm (e.g., 38)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 4: // Thigh
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
+                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[#000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Thigh - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.thigh}
+                onChange={(e) => handleMeasurementChange('thigh', e.target.value)}
+                placeholder="Enter thigh measurement in cm (e.g., 24)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 5: // Crotch/Rise
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
+                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[7000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Crotch / Rise (Front Rise) - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.crotch_rise}
+                onChange={(e) => handleMeasurementChange('crotch_rise', e.target.value)}
+                placeholder="Enter crotch rise in cm (e.g., 28)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 6: // Bottom Opening
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  1
+                </div>
+                <p className="text-sm text-[#000000]">Step 1 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  2
+                </div>
+                <p className="text-sm text-[#000000]">Step 2 Graphic</p>
+              </div>
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg text-center">
+                <div className="w-16 h-20 bg-[#6E0A13] rounded-lg mx-auto mb-3 flex items-center justify-center text-[#F5F5DC] font-bold">
+                  3
+                </div>
+                <p className="text-sm text-[#000000]">Step 3 Graphic</p>
+              </div>
+            </div>
+            
+            <div className="bg-[#141F40] bg-opacity-5 p-6 rounded-lg">
+              <div className="aspect-video bg-[#141F40] bg-opacity-20 rounded-lg flex items-center justify-center mb-4">
+                <p className="text-[#000000]">📹 Demo Video Placeholder</p>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">
+                Bottom Opening / Hem Circumference - cm
+              </Label>
+              <Input
+                type="number"
+                step="0.1"
+                value={measurements.bottom_opening}
+                onChange={(e) => handleMeasurementChange('bottom_opening', e.target.value)}
+                placeholder="Enter bottom opening in cm (e.g., 18)"
+                className={commonInputClass}
+              />
+            </div>
+          </div>
+        );
+        
+      case 7: // Client Details
+        return (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="email" className="text-text-dark font-semibold">Email Address *</Label>
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">First Name *</Label>
                 <Input
-                  id="email"
-                  data-testid="email-input"
-                  type="email"
-                  value={customerInfo.email}
-                  onChange={(e) => handleCustomerInfoChange('email', e.target.value)}
-                  placeholder="your.email@example.com"
-                  className="measurement-input"
+                  value={customerInfo.first_name}
+                  onChange={(e) => handleCustomerInfoChange('first_name', e.target.value)}
+                  placeholder="Enter your first name"
+                  className={commonInputClass}
                   required
                 />
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone" className="text-text-dark font-semibold">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    data-testid="phone-input"
-                    value={customerInfo.phone}
-                    onChange={(e) => handleCustomerInfoChange('phone', e.target.value)}
-                    placeholder="+91 9876543210"
-                    className="measurement-input"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="age" className="text-text-dark font-semibold">Age</Label>
-                  <Input
-                    id="age"
-                    data-testid="age-input"
-                    type="number"
-                    min="18"
-                    max="120"
-                    value={customerInfo.age}
-                    onChange={(e) => handleCustomerInfoChange('age', e.target.value)}
-                    placeholder="25"
-                    className="measurement-input"
-                  />
-                </div>
-              </div>
-              
               <div>
-                <Label htmlFor="bodyType" className="text-text-dark font-semibold">Body Type (Optional)</Label>
-                <Select value={customerInfo.body_type} onValueChange={(value) => handleCustomerInfoChange('body_type', value)}>
-                  <SelectTrigger data-testid="body-type-select" className="measurement-input">
-                    <SelectValue placeholder="Select your body type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="slim">Slim</SelectItem>
-                    <SelectItem value="athletic">Athletic</SelectItem>
-                    <SelectItem value="average">Average</SelectItem>
-                    <SelectItem value="broad">Broad</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="specialConsiderations" className="text-text-dark font-semibold">Special Fitting Considerations</Label>
-                <Textarea
-                  id="specialConsiderations"
-                  data-testid="special-considerations-input"
-                  value={customerInfo.special_considerations}
-                  onChange={(e) => handleCustomerInfoChange('special_considerations', e.target.value)}
-                  placeholder="Any special requirements or preferences..."
-                  className="measurement-input"
-                  rows={3}
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">Last Name *</Label>
+                <Input
+                  value={customerInfo.last_name}
+                  onChange={(e) => handleCustomerInfoChange('last_name', e.target.value)}
+                  placeholder="Enter your last name"
+                  className={commonInputClass}
+                  required
                 />
               </div>
-            </CardContent>
-          </Card>
-        );
-      
-      case 2:
-        return (
-          <Card className="luxury-card w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="font-serif text-2xl text-maroon-600">Measurements</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="height" className="text-text-dark font-semibold">Height (cm) *</Label>
-                  <Input
-                    id="height"
-                    data-testid="height-input"
-                    type="number"
-                    step="0.1"
-                    min="100"
-                    max="250"
-                    value={measurements.height}
-                    onChange={(e) => handleMeasurementChange('height', e.target.value)}
-                    placeholder="175"
-                    className="measurement-input"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="weight" className="text-text-dark font-semibold">Weight (kg) *</Label>
-                  <Input
-                    id="weight"
-                    data-testid="weight-input"
-                    type="number"
-                    step="0.1"
-                    min="30"
-                    max="300"
-                    value={measurements.weight}
-                    onChange={(e) => handleMeasurementChange('weight', e.target.value)}
-                    placeholder="70"
-                    className="measurement-input"
-                    required
-                  />
-                </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">Email Address *</Label>
+              <Input
+                type="email"
+                value={customerInfo.email}
+                onChange={(e) => handleCustomerInfoChange('email', e.target.value)}
+                placeholder="your.email@example.com"
+                className={commonInputClass}
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">Phone Number</Label>
+                <Input
+                  value={customerInfo.phone}
+                  onChange={(e) => handleCustomerInfoChange('phone', e.target.value)}
+                  placeholder="+91 9876543210"
+                  className={commonInputClass}
+                />
               </div>
+              <div>
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">Age</Label>
+                <Input
+                  type="number"
+                  min="18"
+                  max="120"
+                  value={customerInfo.age}
+                  onChange={(e) => handleCustomerInfoChange('age', e.target.value)}
+                  placeholder="25"
+                  className={commonInputClass}
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">Height (cm)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={customerInfo.height}
+                  onChange={(e) => handleCustomerInfoChange('height', e.target.value)}
+                  placeholder="175"
+                  className={commonInputClass}
+                />
+              </div>
+              <div>
+                <Label className="text-lg font-semibold text-[#000000] mb-2 block">Weight (kg)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={customerInfo.weight}
+                  onChange={(e) => handleCustomerInfoChange('weight', e.target.value)}
+                  placeholder="70"
+                  className={commonInputClass}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">Body Type</Label>
+              <Select value={customerInfo.body_type} onValueChange={(value) => handleCustomerInfoChange('body_type', value)}>
+                <SelectTrigger className={commonInputClass}>
+                  <SelectValue placeholder="Select your body type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="slim">Slim</SelectItem>
+                  <SelectItem value="athletic">Athletic</SelectItem>
+                  <SelectItem value="average">Average</SelectItem>
+                  <SelectItem value="broad">Broad</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label className="text-lg font-semibold text-[#000000] mb-2 block">Special Considerations</Label>
+              <Textarea
+                value={customerInfo.special_considerations}
+                onChange={(e) => handleCustomerInfoChange('special_considerations', e.target.value)}
+                placeholder="Any special fitting requirements or preferences..."
+                rows={4}
+                className={commonInputClass}
+              />
+            </div>
+            
+            {/* Photo Upload Section */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-semibold text-[#6E0A13]">Optional: Upload Photos for Better Fit</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="waist" className="text-text-dark font-semibold">Waist (cm)</Label>
-                  <Input
-                    id="waist"
-                    data-testid="waist-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.waist}
-                    onChange={(e) => handleMeasurementChange('waist', e.target.value)}
-                    placeholder="32"
-                    className="measurement-input"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="border-2 border-dashed border-[#141F40] rounded-lg p-6">
+                    {uploadedImages.front_view ? (
+                      <img src={uploadedImages.front_view} alt="Front view" className="w-full h-32 object-cover rounded" />
+                    ) : (
+                      <div className="h-32 flex items-center justify-center">
+                        <span className="text-4xl">📸</span>
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('front-view-input').click()}
+                      className="mt-2 border-[#6E0A13] text-[#6E0A13] hover:bg-[#6E0A13] hover:text-[#F5F5DC]"
+                    >
+                      Front View
+                    </Button>
+                    <input
+                      id="front-view-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e.target.files[0], 'front_view')}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="hipSeat" className="text-text-dark font-semibold">Hip/Seat (cm)</Label>
-                  <Input
-                    id="hipSeat"
-                    data-testid="hip-seat-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.hip_seat}
-                    onChange={(e) => handleMeasurementChange('hip_seat', e.target.value)}
-                    placeholder="36"
-                    className="measurement-input"
-                  />
+                
+                <div className="text-center">
+                  <div className="border-2 border-dashed border-[#141F40] rounded-lg p-6">
+                    {uploadedImages.side_view ? (
+                      <img src={uploadedImages.side_view} alt="Side view" className="w-full h-32 object-cover rounded" />
+                    ) : (
+                      <div className="h-32 flex items-center justify-center">
+                        <span className="text-4xl">📸</span>
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('side-view-input').click()}
+                      className="mt-2 border-[#6E0A13] text-[#6E0A13] hover:bg-[#6E0A13] hover:text-[#F5F5DC]"
+                    >
+                      Side View
+                    </Button>
+                    <input
+                      id="side-view-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e.target.files[0], 'side_view')}
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="thigh" className="text-text-dark font-semibold">Thigh (cm)</Label>
-                  <Input
-                    id="thigh"
-                    data-testid="thigh-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.thigh}
-                    onChange={(e) => handleMeasurementChange('thigh', e.target.value)}
-                    placeholder="24"
-                    className="measurement-input"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="crothRise" className="text-text-dark font-semibold">Crotch Rise (cm)</Label>
-                  <Input
-                    id="crothRise"
-                    data-testid="crotch-rise-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.crotch_rise}
-                    onChange={(e) => handleMeasurementChange('crotch_rise', e.target.value)}
-                    placeholder="28"
-                    className="measurement-input"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="outseam" className="text-text-dark font-semibold">Outseam (cm)</Label>
-                  <Input
-                    id="outseam"
-                    data-testid="outseam-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.outseam}
-                    onChange={(e) => handleMeasurementChange('outseam', e.target.value)}
-                    placeholder="110"
-                    className="measurement-input"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bottomOpening" className="text-text-dark font-semibold">Bottom Opening (cm)</Label>
-                  <Input
-                    id="bottomOpening"
-                    data-testid="bottom-opening-input"
-                    type="number"
-                    step="0.1"
-                    value={measurements.bottom_opening}
-                    onChange={(e) => handleMeasurementChange('bottom_opening', e.target.value)}
-                    placeholder="18"
-                    className="measurement-input"
-                  />
+                
+                <div className="text-center">
+                  <div className="border-2 border-dashed border-[#141F40] rounded-lg p-6">
+                    {uploadedImages.reference_fit ? (
+                      <img src={uploadedImages.reference_fit} alt="Reference fit" className="w-full h-32 object-cover rounded" />
+                    ) : (
+                      <div className="h-32 flex items-center justify-center">
+                        <span className="text-4xl">👔</span>
+                      </div>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => document.getElementById('reference-fit-input').click()}
+                      className="mt-2 border-[#6E0A13] text-[#6E0A13] hover:bg-[#6E0A13] hover:text-[#F5F5DC]"
+                    >
+                      Reference Fit
+                    </Button>
+                    <input
+                      id="reference-fit-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageUpload(e.target.files[0], 'reference_fit')}
+                    />
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         );
-      
-      case 3:
+        
+      case 8: // Payment
         return (
-          <Card className="luxury-card w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="font-serif text-2xl text-maroon-600">Photo Upload</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-cream p-4 rounded-lg border border-beige-300">
-                <h4 className="font-semibold text-maroon-600 mb-2">📸 Help Us Create Your Perfect Fit</h4>
-                <p className="text-text-dark text-sm">
-                  Upload photos to help our tailors understand your body type and preferred fit. All photos are secure and will be used only for tailoring purposes.
-                </p>
-              </div>
-
-              {/* Front View Photo */}
-              <div className="space-y-2">
-                <Label className="text-text-dark font-semibold">Front View Photo (Recommended)</Label>
-                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
-                  {uploadedImages.front_view ? (
-                    <div className="space-y-2">
-                      <img 
-                        src={uploadedImages.front_view} 
-                        alt="Front view" 
-                        className="w-24 h-32 object-cover mx-auto rounded-lg"
-                      />
-                      <p className="text-green-600 text-sm">✅ Front view uploaded</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('front-view-input').click()}
-                        className="text-xs"
-                      >
-                        Replace Photo
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
-                        <span className="text-2xl">📸</span>
-                      </div>
-                      <p className="text-text-light">Stand straight, arms at sides</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById('front-view-input').click()}
-                      >
-                        Upload Front View
-                      </Button>
-                    </div>
-                  )}
-                  <input
-                    id="front-view-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageChange('front_view', e.target.files[0])}
-                  />
-                </div>
-              </div>
-
-              {/* Side View Photo */}
-              <div className="space-y-2">
-                <Label className="text-text-dark font-semibold">Side View Photo (Recommended)</Label>
-                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
-                  {uploadedImages.side_view ? (
-                    <div className="space-y-2">
-                      <img 
-                        src={uploadedImages.side_view} 
-                        alt="Side view" 
-                        className="w-24 h-32 object-cover mx-auto rounded-lg"
-                      />
-                      <p className="text-green-600 text-sm">✅ Side view uploaded</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('side-view-input').click()}
-                        className="text-xs"
-                      >
-                        Replace Photo
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
-                        <span className="text-2xl">📸</span>
-                      </div>
-                      <p className="text-text-light">Profile view, natural stance</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById('side-view-input').click()}
-                      >
-                        Upload Side View
-                      </Button>
-                    </div>
-                  )}
-                  <input
-                    id="side-view-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageChange('side_view', e.target.files[0])}
-                  />
-                </div>
-              </div>
-
-              {/* Reference Fit Photo */}
-              <div className="space-y-2">
-                <Label className="text-text-dark font-semibold">Reference Fit Photo (Optional)</Label>
-                <div className="border-2 border-dashed border-beige-300 rounded-lg p-6 text-center">
-                  {uploadedImages.reference_fit ? (
-                    <div className="space-y-2">
-                      <img 
-                        src={uploadedImages.reference_fit} 
-                        alt="Reference fit" 
-                        className="w-24 h-32 object-cover mx-auto rounded-lg"
-                      />
-                      <p className="text-green-600 text-sm">✅ Reference fit uploaded</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('reference-fit-input').click()}
-                        className="text-xs"
-                      >
-                        Replace Photo
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="w-16 h-20 bg-stone-200 rounded-lg mx-auto flex items-center justify-center">
-                        <span className="text-2xl">👕</span>
-                      </div>
-                      <p className="text-text-light">Photo of a garment you love the fit of</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById('reference-fit-input').click()}
-                      >
-                        Upload Reference
-                      </Button>
-                    </div>
-                  )}
-                  <input
-                    id="reference-fit-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handleImageChange('reference_fit', e.target.files[0])}
-                  />
-                </div>
-              </div>
-
-              <div className="bg-stone-50 p-4 rounded-lg text-sm text-text-light">
-                <p className="mb-2"><strong>Photography Tips:</strong></p>
-                <ul className="space-y-1 text-xs">
-                  <li>• Good lighting (natural light works best)</li>
-                  <li>• Wear well-fitted clothing</li>
-                  <li>• Stand 6-8 feet from the camera</li>
-                  <li>• Keep arms relaxed at your sides</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      
-      case 4:
-        return (
-          <Card className="luxury-card w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="font-serif text-2xl text-maroon-600">Order Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {productSelection && (
-                <div className="bg-cream p-4 rounded-lg border border-beige-300">
-                  <h4 className="font-semibold text-maroon-600 mb-2">Selected Product</h4>
-                  <p className="text-text-dark">Fabric: {productSelection.fabric}</p>
-                  <p className="text-text-dark">Price: ₹{productSelection.price}</p>
-                  <p className="text-text-dark">Quantity: {productSelection.quantity}</p>
+          <div className="space-y-8">
+            <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-green-800 mb-2">Measurements Submitted Successfully!</h3>
+              <p className="text-green-700">
+                Your measurements have been recorded. Complete payment to confirm your bespoke trouser order.
+              </p>
+              {submissionId && (
+                <div className="mt-3">
+                  <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                    Order ID: {submissionId.slice(0, 8)}
+                  </span>
                 </div>
               )}
-              
-              <div>
-                <Label htmlFor="stylePreferences" className="text-text-dark font-semibold">Style Preferences</Label>
-                <Textarea
-                  id="stylePreferences"
-                  data-testid="style-preferences-input"
-                  value={orderDetails.style_preferences}
-                  onChange={(e) => handleOrderDetailsChange('style_preferences', e.target.value)}
-                  placeholder="Slim fit, tapered legs, flat front, etc..."
-                  className="measurement-input"
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="notes" className="text-text-dark font-semibold">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  data-testid="notes-input"
-                  value={orderDetails.notes}
-                  onChange={(e) => handleOrderDetailsChange('notes', e.target.value)}
-                  placeholder="Any special requests or instructions..."
-                  className="measurement-input"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="bg-stone-50 p-6 rounded-xl">
-                <h3 className="font-serif font-semibold text-maroon-600 mb-4">Order Summary</h3>
-                <div className="space-y-2 text-text-dark">
-                  <div className="flex justify-between">
-                    <span>Premium Tailored Trousers × {orderDetails.quantity}</span>
-                    <span>₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
-                  </div>
-                  <div className="border-t pt-2 mt-3">
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total Amount</span>
-                      <span data-testid="total-amount" className="text-accent-gold">₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
-                    </div>
+            </div>
+            
+            <div className="bg-[#F5F5DC] border-2 border-[#141F40] p-8 rounded-lg">
+              <h3 className="text-2xl font-serif font-bold text-[#6E0A13] mb-6">Order Summary</h3>
+              <div className="space-y-4">
+                <div className="flex justify-between text-lg">
+                  <span className="text-[#000000]">Customer:</span>
+                  <span className="font-semibold text-[#000000]">{customerInfo.first_name} {customerInfo.last_name}</span>
+                </div>
+                <div className="flex justify-between text-lg">
+                  <span className="text-[#000000]">Email:</span>
+                  <span className="text-[#000000]">{customerInfo.email}</span>
+                </div>
+                <div className="flex justify-between text-lg">
+                  <span className="text-[#000000]">Product:</span>
+                  <span className="text-[#000000]">Bespoke Trousers</span>
+                </div>
+                <div className="flex justify-between text-lg">
+                  <span className="text-[#000000]">Quantity:</span>
+                  <span className="text-[#000000]">{orderDetails.quantity}</span>
+                </div>
+                <div className="border-t-2 border-[#141F40] pt-4 mt-4">
+                  <div className="flex justify-between text-2xl font-bold">
+                    <span className="text-[#000000]">Total:</span>
+                    <span className="text-[#6E0A13]">₹{(450 * orderDetails.quantity).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        );
-      
-      case 5:
-        return (
-          <Card className="luxury-card w-full max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="font-serif text-2xl text-maroon-600">Payment & Confirmation</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
-                <h3 className="font-semibold text-green-800 mb-2">Order Submitted Successfully!</h3>
-                <p className="text-green-700">
-                  Your measurements have been recorded. Complete payment to confirm your order.
-                </p>
-                {submissionId && (
-                  <div className="mt-3">
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium" data-testid="order-id-badge">
-                      Order ID: {submissionId.slice(0, 8)}
-                    </span>
-                  </div>
-                )}
-              </div>
+            </div>
+            
+            <div className="text-center space-y-4">
+              <Button
+                onClick={initiatePayment}
+                disabled={isLoading}
+                className="bg-[#6E0A13] hover:bg-[#141F40] text-[#F5F5DC] px-12 py-4 text-xl font-semibold rounded-full w-full transition-all duration-300 transform hover:scale-105"
+                size="lg"
+              >
+                {isLoading ? 'Processing...' : 'Complete Payment'}
+              </Button>
               
-              <div className="bg-stone-50 p-6 rounded-xl">
-                <h3 className="font-serif font-semibold text-maroon-600 mb-4">Final Order Summary</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Customer:</span>
-                    <span data-testid="customer-name" className="font-medium">{customerInfo.first_name} {customerInfo.last_name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Email:</span>
-                    <span data-testid="customer-email">{customerInfo.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Product:</span>
-                    <span>Premium Tailored Trousers</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Quantity:</span>
-                    <span data-testid="order-quantity">{orderDetails.quantity}</span>
-                  </div>
-                  {orderDetails.fabric_choice && (
-                    <div className="flex justify-between">
-                      <span>Fabric:</span>
-                      <span data-testid="fabric-choice">{orderDetails.fabric_choice}</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-3 mt-3">
-                    <div className="flex justify-between font-bold text-xl">
-                      <span>Total:</span>
-                      <span data-testid="final-total" className="text-accent-gold">₹{(productSelection?.totalPrice || 450 * orderDetails.quantity).toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-center space-y-4">
+              <div className="border-t pt-4">
+                <p className="text-sm text-[#000000] mb-2">Test Mode:</p>
                 <Button
-                  data-testid="pay-now-btn"
-                  onClick={initiatePayment}
-                  disabled={isLoading}
-                  className="btn-primary px-8 py-4 text-lg w-full"
-                  size="lg"
-                >
-                  {isLoading ? 'Processing...' : 'Pay Now'}
-                </Button>
-                
-                {/* Test Payment Button for Development */}
-                <div className="border-t pt-3">
-                  <p className="text-xs text-text-light mb-2">Test Mode:</p>
-                  <Button
-                    data-testid="test-payment-btn"
-                    onClick={async () => {
-                      if (!submissionId) return;
-                      setIsLoading(true);
-                      try {
-                        const response = await axios.post(
-                          `${process.env.REACT_APP_BACKEND_URL}/api/test-payment-success/${submissionId}`
-                        );
-                        if (response.data.status === 'success') {
-                          toast.success('🎉 Test payment successful! Order confirmed and data pushed to sheets.');
-                          setTimeout(() => navigate('/'), 2000);
-                        }
-                      } catch (error) {
-                        toast.error('Test payment failed');
-                      } finally {
-                        setIsLoading(false);
+                  onClick={async () => {
+                    if (!submissionId) return;
+                    setIsLoading(true);
+                    try {
+                      const response = await axios.post(
+                        `${process.env.REACT_APP_BACKEND_URL}/api/test-payment-success/${submissionId}`
+                      );
+                      if (response.data.status === 'success') {
+                        toast.success('🎉 Test payment successful! Order confirmed and data pushed to sheets.');
+                        setTimeout(() => navigate('/'), 2000);
                       }
-                    }}
-                    disabled={isLoading}
-                    variant="outline"
-                    className="w-full text-sm"
-                  >
-                    Simulate Payment Success (Test)
-                  </Button>
-                </div>
-                
-                <p className="text-xs text-text-light">
-                  Secure payment powered by Razorpay
-                </p>
+                    } catch (error) {
+                      toast.error('Test payment failed');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-[#6E0A13] text-[#6E0A13] hover:bg-[#6E0A13] hover:text-[#F5F5DC]"
+                >
+                  Simulate Payment Success (Test)
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+              
+              <p className="text-sm text-[#000000] opacity-70">
+                Secure payment powered by Razorpay
+              </p>
+            </div>
+          </div>
         );
-      
+        
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-cream">
-      {/* Navigation */}
-      <nav className="bg-white/95 backdrop-blur-md border-b border-beige-200">
+    <div className="min-h-screen bg-[#F5F5DC]">
+      {/* Header */}
+      <header className="bg-[#141F40] sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <button
-                onClick={() => navigate('/')}
-                className="mr-4 p-2 hover:bg-stone-100 rounded-full transition-colors"
-                data-testid="back-home-btn"
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')} 
+                className="text-[#F5F5DC] hover:text-[#F5F5DC] hover:bg-[#F5F5DC] hover:bg-opacity-10"
               >
-                <svg className="w-6 h-6 text-maroon-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <h1 className="font-serif text-2xl lg:text-3xl font-bold text-maroon-600">
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Back to Home
+              </Button>
+              
+              <h1 className="text-2xl lg:text-3xl font-serif font-bold text-[#F5F5DC]">
                 Stallion & Co.
               </h1>
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Progress Steps */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-center mb-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="flex items-center justify-center mb-12">
           <div className="flex items-center space-x-4">
-            {[1, 2, 3, 4, 5].map((step) => (
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((step) => (
               <React.Fragment key={step}>
                 <div className={`
-                  w-12 h-12 rounded-full flex items-center justify-center font-serif font-bold
+                  w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold
                   transition-all duration-300
                   ${
                     currentStep >= step
-                      ? 'bg-maroon-600 text-white'
-                      : 'bg-stone-200 text-stone-500'
+                      ? 'bg-[#6E0A13] text-[#F5F5DC]'
+                      : 'bg-[#141F40] bg-opacity-20 text-[#000000]'
                   }
-                `} data-testid={`step-${step}-indicator`}>
+                `}>
                   {step}
                 </div>
-                {step < 5 && (
+                {step < 8 && (
                   <div className={`
-                    w-16 h-2 transition-all duration-300 rounded-full
+                    w-8 h-1 transition-all duration-300 rounded-full
                     ${
                       currentStep > step
-                        ? 'bg-maroon-600'
-                        : 'bg-stone-200'
+                        ? 'bg-[#6E0A13]'
+                        : 'bg-[#141F40] bg-opacity-20'
                     }
                   `} />
                 )}
@@ -966,53 +946,61 @@ const MeasurementFlow = () => {
           </div>
         </div>
         
-        <div className="text-center mb-8">
-          <h1 className="font-serif text-4xl font-bold text-maroon-600 mb-3" data-testid="step-title">
-            {currentStep === 1 && 'Personal Information'}
-            {currentStep === 2 && 'Measurements'}
-            {currentStep === 3 && 'Photo Upload'}
-            {currentStep === 4 && 'Order Preferences'}
-            {currentStep === 5 && 'Payment & Confirmation'}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl sm:text-5xl font-serif font-bold text-[#6E0A13] mb-4">
+            {stepTitles[currentStep]}
           </h1>
-          <p className="text-xl text-text-light">
-            {currentStep === 1 && 'Tell us about yourself'}
-            {currentStep === 2 && 'Provide your precise measurements'}
-            {currentStep === 3 && 'Upload your photos for better fitting'}
-            {currentStep === 4 && 'Customize your order'}
-            {currentStep === 5 && 'Complete your order'}
-          </p>
+          {expertTips[currentStep] && (
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-[#141F40] bg-opacity-10 p-6 rounded-lg border-l-4 border-[#6E0A13]">
+                <p className="text-[#000000] italic">
+                  <span className="font-semibold text-[#6E0A13]">Stallion & Co Expert Tip:</span> {expertTips[currentStep]}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
-        {renderStepContent()}
+        <Card className="max-w-4xl mx-auto bg-white border-2 border-[#141F40] shadow-2xl">
+          <CardHeader className="bg-[#141F40] bg-opacity-5">
+            <CardTitle className="text-2xl font-serif text-[#6E0A13] text-center">
+              Step {currentStep} of 8
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            {renderStepContent()}
+          </CardContent>
+        </Card>
 
         {/* Navigation Buttons */}
-        {currentStep < 5 && (
-          <div className="flex justify-between mt-8 max-w-2xl mx-auto">
+        {currentStep < 8 && (
+          <div className="flex justify-between mt-8 max-w-4xl mx-auto">
             <Button
-              data-testid="prev-step-btn"
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="btn-secondary px-6 py-3"
+              variant="outline"
+              className="px-8 py-3 border-[#141F40] text-[#141F40] hover:bg-[#141F40] hover:text-[#F5F5DC]"
             >
+              <ChevronLeft className="h-5 w-5 mr-2" />
               Previous
             </Button>
             
-            {currentStep === 4 ? (
+            {currentStep === 7 ? (
               <Button
-                data-testid="submit-order-btn"
                 onClick={submitOrder}
                 disabled={isLoading}
-                className="btn-primary px-6 py-3"
+                className="bg-[#6E0A13] hover:bg-[#141F40] text-[#F5F5DC] px-8 py-3"
               >
-                {isLoading ? 'Submitting...' : 'Submit Order'}
+                {isLoading ? 'Submitting...' : 'Submit Measurements'}
+                <ChevronRight className="h-5 w-5 ml-2" />
               </Button>
             ) : (
               <Button
-                data-testid="next-step-btn"
                 onClick={nextStep}
-                className="btn-primary px-6 py-3"
+                className="bg-[#6E0A13] hover:bg-[#141F40] text-[#F5F5DC] px-8 py-3"
               >
                 Next Step
+                <ChevronRight className="h-5 w-5 ml-2" />
               </Button>
             )}
           </div>
